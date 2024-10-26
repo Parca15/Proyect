@@ -41,6 +41,4 @@ public class Proceso {
     public void setActividades(ListaEnlazada<Actividad> actividades) {
         this.actividades = actividades;
     }
-
-
 }
