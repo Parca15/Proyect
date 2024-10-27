@@ -1,5 +1,7 @@
 package Proyecto.ModelosBase.Inter;
 
+import Proyecto.ModelosBase.Login;
+
 import javax.swing.*;
 import javax.swing.text.*;
 import java.awt.*;
@@ -74,29 +76,30 @@ public class InterLogin extends JFrame {
                 BorderFactory.createEmptyBorder(0, 10, 0, 10))); // Solo borde inferior
         mainPanel.add(passwordField);
 
-        // Checkbox "Remember me"
+        // Checkbox "Recordarme"
         rememberMe = new JCheckBox("Recordarme");
         rememberMe.setBounds(50, 260, 120, 30);
         rememberMe.setForeground(Color.WHITE);
         rememberMe.setOpaque(false);
         mainPanel.add(rememberMe);
 
-        // Link "Forget Password?"
+        // Link "Olvidó su contraseña?"
         JLabel forgetPassword = new JLabel("Olvidó su contraseña?");
         forgetPassword.setForeground(Color.WHITE);
         forgetPassword.setBounds(220, 260, 130, 30);
         forgetPassword.setCursor(new Cursor(Cursor.HAND_CURSOR));
         mainPanel.add(forgetPassword);
 
-        // Botón de registro
-        JButton registerButton = new JButton("Iniciar sesión");
-        registerButton.setBounds(50, 310, 300, 40);
-        registerButton.setBackground(new Color(147, 112, 219)); // Color sólido morado
-        registerButton.setForeground(Color.BLACK); // Color del texto negro
-        registerButton.setFont(new Font("Arial", Font.BOLD, 14)); // Fuente en negrita y tamaño 16
-        registerButton.setBorder(new RoundedBorder(20));
-        registerButton.setFocusPainted(false);
-        mainPanel.add(registerButton);
+        // Botón de inicio de sesión
+        JButton loginButton = new JButton("Iniciar sesión");
+        loginButton.setBounds(50, 310, 300, 40);
+        loginButton.setBackground(new Color(147, 112, 219)); // Color sólido morado
+        loginButton.setForeground(Color.BLACK); // Color del texto negro
+        loginButton.setFont(new Font("Arial", Font.BOLD, 14)); // Fuente en negrita y tamaño 16
+        loginButton.setBorder(new RoundedBorder(20));
+        loginButton.setFocusPainted(false);
+        loginButton.addActionListener(e -> handleLogin()); // Método para manejar el inicio de sesión
+        mainPanel.add(loginButton);
 
         // Texto y link de registro
         JLabel noAccountLabel = new JLabel("No tengo cuenta");
@@ -148,6 +151,25 @@ public class InterLogin extends JFrame {
         });
     }
 
+    // Método para manejar el inicio de sesión
+    private void handleLogin() {
+        String documento = emailField.getText(); // Captura el documento
+        String password = new String(passwordField.getPassword()); // Captura la contraseña
+
+        // Verifica el usuario
+        String userType = Login.verifyUser(documento, password);
+
+        // Maneja el resultado de la verificación
+        if (userType != null) {
+            // El usuario es válido
+            JOptionPane.showMessageDialog(this, "Inicio de sesión exitoso como " + userType, "Éxito", JOptionPane.INFORMATION_MESSAGE);
+            // Aquí puedes redirigir al usuario a la interfaz correspondiente según el tipo de usuario
+        } else {
+            // El usuario no es válido
+            JOptionPane.showMessageDialog(this, "Documento o clave incorrectos. Intente de nuevo.", "Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
     // Clase para crear bordes inferiores
     private static class BottomBorder extends AbstractBorder {
         @Override
@@ -160,7 +182,6 @@ public class InterLogin extends JFrame {
         }
     }
 
-    // Clase para crear bordes redondeados
     private static class RoundedBorder extends AbstractBorder {
         private int radius;
 
@@ -176,16 +197,5 @@ public class InterLogin extends JFrame {
             g2.drawRoundRect(x, y, width - 1, height - 1, radius, radius);
             g2.dispose();
         }
-    }
-
-    public static void main(String[] args) {
-        SwingUtilities.invokeLater(() -> {
-            try {
-                UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-            new InterLogin().setVisible(true);
-        });
     }
 }
