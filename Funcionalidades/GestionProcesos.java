@@ -1,6 +1,7 @@
 package Proyecto.Funcionalidades;
 
 import Proyecto.ModelosBase.Actividad;
+import Proyecto.ModelosBase.Notificaciones.MonitorProcesos;
 import Proyecto.ModelosBase.Proceso;
 
 import java.util.Map;
@@ -8,9 +9,11 @@ import java.util.UUID;
 
 public class GestionProcesos {
     private Map<UUID, Proceso> procesos;
+    private final MonitorProcesos monitorProcesos;
 
     public GestionProcesos(Map<UUID, Proceso> procesos) {
         this.procesos = procesos;
+        this.monitorProcesos = MonitorProcesos.getInstance();
     }
 
     public Proceso crearProceso(String nombre) {

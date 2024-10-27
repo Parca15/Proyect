@@ -89,8 +89,7 @@ public class GestionNotificaciones {
         );
     }
 
-    public void crearNotificacion(String titulo, String mensaje, TipoNotificacion tipo,
-                                   PrioridadNotificacion prioridad, String idReferencia) {
+    public void crearNotificacion(String titulo, String mensaje, TipoNotificacion tipo, PrioridadNotificacion prioridad, String idReferencia) {
         Notificacion notificacion = new Notificacion(titulo, mensaje, tipo, prioridad, idReferencia);
         notificaciones.encolar(notificacion);
 
@@ -107,5 +106,48 @@ public class GestionNotificaciones {
         while (!notificaciones.estaVacia()) {
             notificaciones.desencolar();
         }
+    }
+
+    public void notificarProcesoIniciado(Proceso proceso) {
+        crearNotificacion(
+                "Nuevo Proceso",
+                "Se ha iniciado el proceso: " + proceso.getNombre(),
+                TipoNotificacion.PROCESO_INICIADO,
+                PrioridadNotificacion.MEDIA,
+                proceso.getId().toString()
+        );
+    }
+
+    public void notificarTareaVencida(Tarea tarea, Actividad actividad, Proceso proceso) {
+        crearNotificacion(
+                "Tarea Vencida",
+                "La tarea '" + tarea.getDescripcion() + "' en la actividad '" +
+                        actividad.getNombre() + "' ha superado su duración estimada de " +
+                        tarea.getDuracion() + " horas",
+                TipoNotificacion.TAREA_VENCIDA,
+                PrioridadNotificacion.ALTA,
+                proceso.getId().toString()
+        );
+    }
+
+    public void notificarTareaProximaVencer(Tarea tarea, Actividad actividad, Proceso proceso, long horasRestantes) {
+        crearNotificacion(
+                "Tarea Próxima a Vencer",
+                "La tarea '" + tarea.getDescripcion() + "' vencerá en " +
+                        horasRestantes + " horas",
+                TipoNotificacion.TAREA_PROXIMA,
+                PrioridadNotificacion.MEDIA,
+                proceso.getId().toString()
+        );
+    }
+
+    public void notificarActividadEnRiesgo(Actividad actividad, Proceso proceso) {
+        crearNotificacion(
+                "Actividad en Riesgo",
+                "La actividad '" + actividad.getNombre() + "' tiene tareas vencidas",
+                TipoNotificacion.ACTIVIDAD_EN_RIESGO,
+                PrioridadNotificacion.ALTA,
+                proceso.getId().toString()
+        );
     }
 }

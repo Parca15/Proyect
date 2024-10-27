@@ -57,7 +57,7 @@ public class PanelNotificacion extends JPanel {
 
     private Color getColorPrioridad(PrioridadNotificacion prioridad) {
         return switch (prioridad) {
-            case ALTA, URGENTE -> COLOR_ALTA;
+            case ALTA -> COLOR_ALTA;
             case MEDIA -> COLOR_MEDIA;
             default -> COLOR_BAJA;
         };

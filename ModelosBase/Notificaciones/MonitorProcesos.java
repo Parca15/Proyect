@@ -18,12 +18,11 @@ public class MonitorProcesos {
     private static MonitorProcesos instancia;
     private final ScheduledExecutorService scheduler;
     private final List<Proceso> procesosActivos;
-    private final GestionNotificaciones gestionNotificaciones;
 
     private MonitorProcesos() {
         this.scheduler = Executors.newScheduledThreadPool(1);
         this.procesosActivos = new ArrayList<>();
-        this.gestionNotificaciones = GestionNotificaciones.getInstance();
+        GestionNotificaciones gestionNotificaciones = GestionNotificaciones.getInstance();
         iniciarMonitoreo();
     }
 
@@ -35,19 +34,13 @@ public class MonitorProcesos {
     }
 
     private void iniciarMonitoreo() {
-        // Ejecutar verificación cada minuto
         scheduler.scheduleAtFixedRate(this::verificarEstados, 0, 1, TimeUnit.MINUTES);
     }
 
     public void registrarProceso(Proceso proceso) {
         procesosActivos.add(proceso);
-        gestionNotificaciones.crearNotificacion(
-                "Nuevo Proceso",
-                "Se ha iniciado el proceso: " + proceso.getNombre(),
-                TipoNotificacion.PROCESO_INICIADO,
-                PrioridadNotificacion.MEDIA,
-                proceso.getId().toString()
-        );
+        // Usar el método público de GestionNotificaciones
+        GestionNotificaciones.getInstance().notificarProcesoIniciado(proceso);
     }
 
     private void verificarEstados() {
@@ -72,29 +65,12 @@ public class MonitorProcesos {
             long horasTranscurridas = ChronoUnit.HOURS.between(tarea.getFechaCreacion(), ahora);
             long horasRestantes = tarea.getDuracion() - horasTranscurridas;
 
-            // Verificar si la tarea está vencida
             if (horasRestantes <= 0 && tarea.isObligatoria()) {
-                gestionNotificaciones.crearNotificacion(
-                        "Tarea Vencida",
-                        "La tarea '" + tarea.getDescripcion() + "' en la actividad '" +
-                                actividad.getNombre() + "' ha superado su duración estimada de " +
-                                tarea.getDuracion() + " horas",
-                        TipoNotificacion.TAREA_VENCIDA,
-                        PrioridadNotificacion.ALTA,
-                        proceso.getId().toString()
-                );
+                GestionNotificaciones.getInstance().notificarTareaVencida(tarea, actividad, proceso);
                 hayTareasVencidas = true;
             }
-            // Verificar si la tarea está próxima a vencer (menos de 2 horas restantes)
             else if (horasRestantes > 0 && horasRestantes <= 2 && tarea.isObligatoria()) {
-                gestionNotificaciones.crearNotificacion(
-                        "Tarea Próxima a Vencer",
-                        "La tarea '" + tarea.getDescripcion() + "' vencerá en " +
-                                horasRestantes + " horas",
-                        TipoNotificacion.TAREA_PROXIMA,
-                        PrioridadNotificacion.MEDIA,
-                        proceso.getId().toString()
-                );
+                GestionNotificaciones.getInstance().notificarTareaProximaVencer(tarea, actividad, proceso, horasRestantes);
             }
         }
 
@@ -103,15 +79,8 @@ public class MonitorProcesos {
             actividad.getTareas().encolar(tareasCopia.desencolar());
         }
 
-        // Si hay tareas vencidas y la actividad es obligatoria, notificar sobre la actividad
         if (hayTareasVencidas && actividad.isObligatoria()) {
-            gestionNotificaciones.crearNotificacion(
-                    "Actividad en Riesgo",
-                    "La actividad '" + actividad.getNombre() + "' tiene tareas vencidas",
-                    TipoNotificacion.ACTIVIDAD_EN_RIESGO,
-                    PrioridadNotificacion.ALTA,
-                    proceso.getId().toString()
-            );
+            GestionNotificaciones.getInstance().notificarActividadEnRiesgo(actividad, proceso);
         }
     }
 

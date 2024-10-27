@@ -1,77 +1,69 @@
 package Proyecto.ModelosBase.Inter;
 
 import Proyecto.ModelosBase.Notificaciones.Notificacion;
+import Proyecto.ModelosBase.Notificaciones.PrioridadNotificacion;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionListener;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
 
 public class VentanaNotificacion extends JDialog {
-    private static final int TIEMPO_MOSTRAR = 5000; // 5 segundos
-    private static final int TIEMPO_ANIMACION = 500; // 0.5 segundos
-    private Timer temporizadorOcultar;
-    private Timer temporizadorAnimacion;
-    private int posicionYObjetivo;
-    private int posicionYActual;
-
-    public VentanaNotificacion(Notificacion notificacion, int anchoVentana) {
+    public VentanaNotificacion(Notificacion notificacion, int anchoVentanaActual) {
+        super((Frame) null, "Notificación", false);
         setUndecorated(true);
-        setAlwaysOnTop(true);
 
-        PanelNotificacion panelNotificacion = new PanelNotificacion(notificacion);
-        add(panelNotificacion);
+        // Panel principal con borde
+        JPanel panel = new JPanel();
+        panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
+        panel.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(getPriorityColor(notificacion.getPrioridad()), 2),
+                BorderFactory.createEmptyBorder(10, 10, 10, 10)
+        ));
 
+        // Título
+        JLabel titleLabel = new JLabel(notificacion.getTitulo());
+        titleLabel.setFont(titleLabel.getFont().deriveFont(Font.BOLD, 14f));
+        panel.add(titleLabel);
+
+        // Mensaje
+        JLabel messageLabel = new JLabel("<html><body style='width: 200px'>" +
+                notificacion.getMensaje() + "</body></html>");
+        panel.add(Box.createVerticalStrut(5));
+        panel.add(messageLabel);
+
+        // Botón de cerrar
+        JButton closeButton = new JButton("×");
+        closeButton.setContentAreaFilled(false);
+        closeButton.setBorderPainted(false);
+        closeButton.addActionListener(e -> dispose());
+        panel.add(Box.createVerticalStrut(5));
+        panel.add(closeButton);
+
+        add(panel);
         pack();
 
-        Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
-        int x = anchoVentana - getWidth() - 20;
-        posicionYObjetivo = screenSize.height - getHeight() - 50;
-        posicionYActual = screenSize.height;
-        setLocation(x, posicionYActual);
+        // Ubicar la ventana
+        posicionarVentana(anchoVentanaActual);
 
-        addMouseListener(new MouseAdapter() {
-            @Override
-            public void mouseClicked(MouseEvent e) {
-                dispose();
-            }
-        });
-
-        configurarTemporizadores();
+        // Timer para cerrar automáticamente
+        Timer timer = new Timer(5000, e -> dispose());
+        timer.setRepeats(false);
+        timer.start();
 
         setVisible(true);
-        temporizadorAnimacion.start();
     }
 
-    private void configurarTemporizadores() {
-        temporizadorOcultar = new Timer(TIEMPO_MOSTRAR, e -> {
-            temporizadorAnimacion.restart();
-            posicionYObjetivo = Toolkit.getDefaultToolkit().getScreenSize().height;
-        });
-        temporizadorOcultar.setRepeats(false);
-
-        ActionListener accionAnimacion = e -> {
-            if (posicionYActual < posicionYObjetivo) {
-                posicionYActual += 10;
-                if (posicionYActual >= posicionYObjetivo) {
-                    posicionYActual = posicionYObjetivo;
-                    temporizadorAnimacion.stop();
-                    if (posicionYObjetivo > getY()) {
-                        dispose();
-                    }
-                }
-            } else {
-                posicionYActual -= 10;
-                if (posicionYActual <= posicionYObjetivo) {
-                    posicionYActual = posicionYObjetivo;
-                    temporizadorAnimacion.stop();
-                    temporizadorOcultar.start();
-                }
-            }
-            setLocation(getX(), posicionYActual);
+    private Color getPriorityColor(PrioridadNotificacion prioridad) {
+        return switch (prioridad) {
+            case ALTA -> Color.RED;
+            case MEDIA -> Color.ORANGE;
+            case BAJA -> Color.BLUE;
         };
+    }
 
-        temporizadorAnimacion = new Timer(TIEMPO_ANIMACION / 50, accionAnimacion);
+    private void posicionarVentana(int anchoVentanaActual) {
+        Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
+        int x = screenSize.width - getWidth() - 20;
+        int y = screenSize.height - getHeight() - 20;
+        setLocation(x, y);
     }
 }

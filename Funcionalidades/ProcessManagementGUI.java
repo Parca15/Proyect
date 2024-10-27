@@ -1,8 +1,11 @@
 package Proyecto.Funcionalidades;
 
 import Proyecto.EstructurasDatos.Nodo;
-import Proyecto.Funcionalidades.*;
 import Proyecto.ModelosBase.*;
+import Proyecto.ModelosBase.Inter.GestorNotificacionesSwing;
+import Proyecto.ModelosBase.Notificaciones.MonitorProcesos;
+import Proyecto.ModelosBase.Notificaciones.PrioridadNotificacion;
+import Proyecto.ModelosBase.Notificaciones.TipoNotificacion;
 
 import javax.swing.*;
 import java.awt.*;
@@ -23,6 +26,7 @@ public class ProcessManagementGUI extends JFrame {
     private DefaultListModel<String> tareasListModel;
     private JList<String> actividadesList;
     private JList<String> tareasList;
+    private final GestorNotificacionesSwing gestorNotificaciones;
 
     // Nuevo esquema de colores
     private static final Color BACKGROUND_COLOR = new Color(242, 232, 207); // F2E8CF - Beige claro
@@ -33,10 +37,19 @@ public class ProcessManagementGUI extends JFrame {
     private static final Color BORDER_COLOR = new Color(56, 102, 65, 128); // Verde oscuro con transparencia
 
     public ProcessManagementGUI() {
+        this.gestorNotificaciones = GestorNotificacionesSwing.getInstance();
         gestionProcesos = new GestionProcesos(new HashMap<>());
         gestionActividades = new GestionActividades(gestionProcesos);
         gestionTareas = new GestionTareas(gestionProcesos);
         procesosMap = new HashMap<>();
+
+        GestionNotificaciones.getInstance().setNotificationHandler(notification -> {
+            SwingUtilities.invokeLater(() -> {
+                gestorNotificaciones.mostrarNotificacion(notification);
+            });
+        });
+
+        MonitorProcesos.getInstance();
 
         setupFrame();
         createProcessPanel();
@@ -244,10 +257,27 @@ public class ProcessManagementGUI extends JFrame {
     private void createProcess() {
         String nombre = JOptionPane.showInputDialog(this, "Ingrese el nombre del proceso:", "Crear Proceso", JOptionPane.PLAIN_MESSAGE);
         if (nombre != null && !nombre.trim().isEmpty()) {
-            Proceso proceso = gestionProcesos.crearProceso(nombre);
-            procesosMap.put(nombre, proceso.getId());
-            procesosComboBox.addItem(nombre);
-            updateActivityList();
+            try {
+                Proceso proceso = gestionProcesos.crearProceso(nombre);
+                procesosMap.put(nombre, proceso.getId());
+                procesosComboBox.addItem(nombre);
+                updateActivityList();
+
+                GestionNotificaciones.getInstance().crearNotificacion(
+                        "Proceso Creado",
+                        "Se ha creado el proceso: " + nombre,
+                        TipoNotificacion.PROCESO_INICIADO,
+                        PrioridadNotificacion.MEDIA,
+                        proceso.getId().toString()
+                );
+
+                // Las notificaciones se generarán automáticamente a través del MonitorProcesos
+            } catch (Exception e) {
+                JOptionPane.showMessageDialog(this,
+                        "Error al crear el proceso: " + e.getMessage(),
+                        "Error",
+                        JOptionPane.ERROR_MESSAGE);
+            }
         }
     }
 
