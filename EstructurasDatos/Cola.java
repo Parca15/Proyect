@@ -1,6 +1,5 @@
 package Proyecto.EstructurasDatos;
 
-
 public class Cola<T> {
     private Nodo<T> nodoPrimero;
     private Nodo<T> nodoUltimo;
@@ -29,13 +28,13 @@ public class Cola<T> {
 
     public T desencolar() {
         if (estaVacia()) {
-            return null;  // Opcionalmente, puedes lanzar una excepción si prefieres manejar el caso de cola vacía.
+            return null;
         }
         T valor = nodoPrimero.getValorNodo();
         nodoPrimero = nodoPrimero.getSiguienteNodo();
         tamanio--;
 
-        if (nodoPrimero == null) { // Si la cola queda vacía después de desencolar
+        if (nodoPrimero == null) {
             nodoUltimo = null;
         }
 
@@ -44,48 +43,80 @@ public class Cola<T> {
 
     public T obtenerFrente() {
         if (estaVacia()) {
-            return null;  // Opcionalmente, lanzar excepción para cola vacía
+            return null;
         }
         return nodoPrimero.getValorNodo();
     }
+
+    public void insertarAlInicio(T elemento) {
+        Nodo<T> nuevoNodo = new Nodo<>(elemento);
+        if (estaVacia()) {
+            nodoPrimero = nodoUltimo = nuevoNodo;
+        } else {
+            nuevoNodo.setSiguienteNodo(nodoPrimero);
+            nodoPrimero = nuevoNodo;
+        }
+        tamanio++;
+    }
+
+    public void insertarAlFinal(T elemento) {
+        encolar(elemento);
+    }
+
+    public void insertarEnPosicion(int posicion, T elemento) {
+        if (posicion < 0 || posicion > tamanio) {
+            throw new IllegalArgumentException("Posición inválida");
+        }
+
+        if (posicion == 0) {
+            insertarAlInicio(elemento);
+            return;
+        }
+
+        if (posicion == tamanio) {
+            insertarAlFinal(elemento);
+            return;
+        }
+
+        Nodo<T> actual = nodoPrimero;
+        for (int i = 0; i < posicion - 1; i++) {
+            actual = actual.getSiguienteNodo();
+        }
+
+        Nodo<T> nuevoNodo = new Nodo<>(elemento);
+        nuevoNodo.setSiguienteNodo(actual.getSiguienteNodo());
+        actual.setSiguienteNodo(nuevoNodo);
+        tamanio++;
+    }
+
     public void insertarDespuesDe(T elementoExistente, T nuevoElemento) {
-
-
         if (estaVacia()) {
             encolar(nuevoElemento);
             return;
         }
 
         Nodo<T> actual = nodoPrimero;
-        boolean encontrado = false;
-
-        while (actual != null && !encontrado) {
+        while (actual != null) {
             if (actual.getValorNodo().equals(elementoExistente)) {
                 Nodo<T> nuevoNodo = new Nodo<>(nuevoElemento);
                 nuevoNodo.setSiguienteNodo(actual.getSiguienteNodo());
                 actual.setSiguienteNodo(nuevoNodo);
 
-                // Si el elemento existente era el último, actualizar nodoUltimo
                 if (actual == nodoUltimo) {
                     nodoUltimo = nuevoNodo;
                 }
-
                 tamanio++;
-                encontrado = true;
+                return;
             }
             actual = actual.getSiguienteNodo();
         }
-
-        if (!encontrado) {
-            System.out.println("El elemento existente no se encuentra en la cola.");
-        }
+        throw new IllegalArgumentException("Elemento existente no encontrado en la cola");
     }
 
     public int obtenerTamanio() {
         return tamanio;
     }
 
-    // Métodos getter y setter para atributos privados
     public Nodo<T> getNodoPrimero() {
         return nodoPrimero;
     }
@@ -108,19 +139,14 @@ public class Cola<T> {
 
     public Nodo<T> obtenerNodoPosicion(int posicion) {
         if (posicion < 0 || posicion >= tamanio) {
-            System.out.println("Posición fuera de rango.");
-            return null;
+            throw new IllegalArgumentException("Posición fuera de rango");
         }
 
         Nodo<T> actual = nodoPrimero;
-        int contador = 0;
-
-        while (actual != null && contador < posicion) {
+        for (int i = 0; i < posicion; i++) {
             actual = actual.getSiguienteNodo();
-            contador++;
         }
 
         return actual;
     }
-
 }

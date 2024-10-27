@@ -1,6 +1,7 @@
 package Proyecto.ModelosBase;
 
 import Proyecto.EstructurasDatos.Cola;
+import java.time.LocalDateTime;
 
 public class Actividad {
     private String nombre;
@@ -9,17 +10,23 @@ public class Actividad {
     private Cola<Tarea> tareas;
     private Actividad anterior;
     private Actividad siguiente;
+    private final LocalDateTime fechaInicio;
 
     public Actividad(String nombre, String descripcion, boolean obligatoria) {
         this.nombre = nombre;
         this.descripcion = descripcion;
         this.obligatoria = obligatoria;
         this.tareas = new Cola<>();
+        this.fechaInicio = LocalDateTime.now();
     }
+
     public void agregarTarea(Tarea tarea){
         tareas.encolar(tarea);
     }
 
+    public LocalDateTime getFechaInicio() {
+        return fechaInicio;
+    }
 
     public Actividad getAnterior() {
         return anterior;

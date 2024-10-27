@@ -1,0 +1,12 @@
+package Proyecto.ModelosBase.Notificaciones;
+
+public enum TipoNotificacion {
+    TAREA_PROXIMA,
+    TAREA_VENCIDA,
+    ACTIVIDAD_INICIADA,
+    ACTIVIDAD_COMPLETADA,
+    PROCESO_ACTUALIZADO,
+    PROCESO_INICIADO,
+    ACTIVIDAD_EN_RIESGO,
+    ALERTA_SISTEMA
+}
