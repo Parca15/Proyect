@@ -1,7 +1,7 @@
 package Proyecto.ModelosBase;
 
 import Proyecto.EstructurasDatos.ListaEnlazada;
-
+import Proyecto.ModelosBase.Notificaciones.MonitorProcesos;
 import java.util.UUID;
 
 public class Proceso {
@@ -9,11 +9,14 @@ public class Proceso {
     private UUID id;
     private ListaEnlazada<Actividad> actividades;
 
-    public Proceso( String nombre) {
+    public Proceso(String nombre) {
         this.id = UUID.randomUUID();
         this.nombre = nombre;
         this.actividades = new ListaEnlazada<>();
+        // Registrar el proceso en el monitor automáticamente
+        MonitorProcesos.getInstance().registrarProceso(this);
     }
+
     public void agregarActividad(Actividad actividad) {
         actividades.insertar(actividad);
     }

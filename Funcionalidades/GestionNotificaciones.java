@@ -12,23 +12,23 @@ import java.time.temporal.ChronoUnit;
 import java.util.function.Consumer;
 
 public class GestionNotificaciones {
-    private static GestionNotificaciones instance;
+    private static GestionNotificaciones instancia;
     private Cola<Notificacion> notificaciones;
-    private Consumer<Notificacion> notificationHandler;
+    private Consumer<Notificacion> manejoNotificacion;
 
     private GestionNotificaciones() {
         this.notificaciones = new Cola<>();
     }
 
     public static GestionNotificaciones getInstance() {
-        if (instance == null) {
-            instance = new GestionNotificaciones();
+        if (instancia == null) {
+            instancia = new GestionNotificaciones();
         }
-        return instance;
+        return instancia;
     }
 
     public void setNotificationHandler(Consumer<Notificacion> handler) {
-        this.notificationHandler = handler;
+        this.manejoNotificacion = handler;
     }
 
     public void verificarTareasPendientes(Proceso proceso) {
@@ -89,13 +89,13 @@ public class GestionNotificaciones {
         );
     }
 
-    private void crearNotificacion(String titulo, String mensaje, TipoNotificacion tipo,
+    public void crearNotificacion(String titulo, String mensaje, TipoNotificacion tipo,
                                    PrioridadNotificacion prioridad, String idReferencia) {
         Notificacion notificacion = new Notificacion(titulo, mensaje, tipo, prioridad, idReferencia);
         notificaciones.encolar(notificacion);
 
-        if (notificationHandler != null) {
-            notificationHandler.accept(notificacion);
+        if (manejoNotificacion != null) {
+            manejoNotificacion.accept(notificacion);
         }
     }
 

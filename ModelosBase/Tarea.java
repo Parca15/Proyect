@@ -5,7 +5,7 @@ import java.time.LocalDateTime;
 public class Tarea {
     private String descripcion;
     private boolean obligatoria;
-    private int duracion;
+    private int duracion; // En horas
     private LocalDateTime fechaCreacion;
 
     public Tarea(String descripcion, int duracion, boolean obligatoria) {
