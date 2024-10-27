@@ -263,14 +263,6 @@ public class ProcessManagementGUI extends JFrame {
                 procesosComboBox.addItem(nombre);
                 updateActivityList();
 
-                GestionNotificaciones.getInstance().crearNotificacion(
-                        "Proceso Creado",
-                        "Se ha creado el proceso: " + nombre,
-                        TipoNotificacion.PROCESO_INICIADO,
-                        PrioridadNotificacion.MEDIA,
-                        proceso.getId().toString()
-                );
-
                 // Las notificaciones se generarán automáticamente a través del MonitorProcesos
             } catch (Exception e) {
                 JOptionPane.showMessageDialog(this,
