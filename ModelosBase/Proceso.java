@@ -2,6 +2,7 @@ package Proyecto.ModelosBase;
 
 import Proyecto.EstructurasDatos.ListaEnlazada;
 
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 public class Proceso {
@@ -43,4 +44,6 @@ public class Proceso {
     }
 
 
+    public LocalDateTime getFechaInicio() {
+    }
 }
