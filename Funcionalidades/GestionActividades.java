@@ -1,10 +1,11 @@
 package Proyecto.Funcionalidades;
 
-import Proyecto.EstructurasDatos.ListaEnlazada;
 import Proyecto.EstructurasDatos.Nodo;
 import Proyecto.ModelosBase.Actividad;
 import Proyecto.ModelosBase.Proceso;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 public class GestionActividades {
@@ -45,6 +46,7 @@ public class GestionActividades {
         }
         ultimaActividad = nuevaActividad;
     }
+
     public void insertarActividadDespuesDe(UUID id,String nombreExistente, String nombre, String descripcion, boolean obligatoria) {
         if (actividadExiste(id,nombre)) {
             System.out.println("Error: Ya existe una actividad con el nombre '" + nombre + "'.");
@@ -106,7 +108,7 @@ public class GestionActividades {
         return null;
     }
 
-    public void intercambiarActividades(UUID id,String nombre1, String nombre2) {
+    public void intercambiarActividades(UUID id, String nombre1, String nombre2, boolean selected) {
         if (nombre1.equals(nombre2)) {
             System.out.println("Error: Los nombres son iguales. No se puede realizar el intercambio.");
             return;
@@ -128,7 +130,17 @@ public class GestionActividades {
         actividad2.setObligatoria(tempObligatoria);
     }
 
+    public List<String> obtenerNombresActividades(UUID id) {
+        List<String> nombres = new ArrayList<>();
+        Nodo<Actividad> actual = gestionProcesos.buscarProceso(id).getActividades().getCabeza();
 
+        while (actual != null) {
+            nombres.add(actual.getValorNodo().getNombre());
+            actual = actual.getSiguienteNodo();
+        }
+
+        return nombres;
+    }
 
 
     public Actividad getUltimaActividad() {
@@ -140,3 +152,4 @@ public class GestionActividades {
     }
 
 }
+
