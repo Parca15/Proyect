@@ -9,11 +9,13 @@ public class Proceso {
     private String nombre;
     private UUID id;
     private ListaEnlazada<Actividad> actividades;
+    private LocalDateTime fechaInicio;
 
     public Proceso( String nombre) {
         this.id = UUID.randomUUID();
         this.nombre = nombre;
         this.actividades = new ListaEnlazada<>();
+        this.fechaInicio = LocalDateTime.now();
     }
     public void agregarActividad(Actividad actividad) {
         actividades.insertar(actividad);
@@ -43,7 +45,8 @@ public class Proceso {
         this.actividades = actividades;
     }
 
-
     public LocalDateTime getFechaInicio() {
+        return fechaInicio;
     }
+
 }

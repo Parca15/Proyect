@@ -60,47 +60,60 @@ public class GestionConsultas {
         int tiempoMinimo = 0;
         int tiempoMaximo = 0;
 
-        Nodo<Actividad> actual = proceso.getActividades().getCabeza();
-        while (actual != null) {
-            Actividad actividad = actual.getValorNodo();
-            TiempoActividad tiempoActividad = calcularTiempoActividad(actividad);
+        // Recorrer todas las actividades
+        Nodo<Actividad> actualActividad = proceso.getActividades().getCabeza();
+        while (actualActividad != null) {
+            Actividad actividad = actualActividad.getValorNodo();
+            Cola<Tarea> tareas = actividad.getTareas();
+            Nodo<Tarea> actualTarea = tareas.getNodoPrimero();
 
-            if (actividad.isObligatoria()) {
-                tiempoMinimo += tiempoActividad.tiempoMinimo;
+            // Para cada actividad, recorrer sus tareas
+            while (actualTarea != null) {
+                Tarea tarea = actualTarea.getValorNodo();
+
+                // Para tiempo mínimo: solo sumar si tanto la actividad como la tarea son obligatorias
+                if (actividad.isObligatoria() && tarea.isObligatoria()) {
+                    tiempoMinimo += tarea.getDuracion();
+                }
+
+                // Para tiempo máximo: sumar todas las tareas independientemente
+                tiempoMaximo += tarea.getDuracion();
+
+                actualTarea = actualTarea.getSiguienteNodo();
             }
-            tiempoMaximo += tiempoActividad.tiempoMaximo;
 
-            actual = actual.getSiguienteNodo();
+            actualActividad = actualActividad.getSiguienteNodo();
         }
 
-        // Calcula el tiempo restante
-        LocalDateTime fechaInicio = proceso.getFechaInicio();
-        Duration duracionTranscurrida = Duration.between(fechaInicio, LocalDateTime.now());
-        long minutosTranscurridos = duracionTranscurrida.toMinutes();
-        long minutosRestantes = tiempoMaximo - minutosTranscurridos;
+        // Calcular el tiempo transcurrido desde la creación del proceso
+        LocalDateTime ahora = LocalDateTime.now();
+        Duration tiempoTranscurrido = Duration.between(proceso.getFechaInicio(), ahora);
+        long minutosTranscurridos = tiempoTranscurrido.toMinutes();
 
-        return new TiempoProceso(tiempoMinimo, Math.max((int) minutosRestantes, 0));
+        // Calcular tiempos restantes
+        int tiempoMinimoRestante = Math.max(tiempoMinimo - (int)minutosTranscurridos, 0);
+        int tiempoMaximoRestante = Math.max(tiempoMaximo - (int)minutosTranscurridos, 0);
+
+        return new TiempoProceso(tiempoMinimoRestante, tiempoMaximoRestante);
     }
 
-    private TiempoActividad calcularTiempoActividad(Actividad actividad) {
-        int tiempoMinimo = 0;
-        int tiempoMaximo = 0;
+    // Clase auxiliar para devolver los tiempos
+    public static class TiempoProceso {
+        private final int tiempoMinimo;
+        private final int tiempoMaximo;
 
-        Cola<Tarea> tareas = actividad.getTareas();
-        Nodo<Tarea> actual = tareas.getNodoPrimero();
-
-        while (actual != null) {
-            Tarea tarea = actual.getValorNodo();
-            if (tarea.isObligatoria()) {
-                tiempoMinimo += tarea.getDuracion();
-                tiempoMaximo += tarea.getDuracion();
-            } else {
-                tiempoMaximo += tarea.getDuracion();
-            }
-            actual = actual.getSiguienteNodo();
+        public TiempoProceso(int tiempoMinimo, int tiempoMaximo) {
+            this.tiempoMinimo = tiempoMinimo;
+            this.tiempoMaximo = tiempoMaximo;
         }
 
-        return new TiempoActividad(tiempoMinimo, tiempoMaximo);
+        public int getTiempoMinimo() {
+            return tiempoMinimo;
+        }
+
+        public int getTiempoMaximo() {
+            return tiempoMaximo;
+        }
     }
     private void buscarDesdeInicio(ListaEnlazada<Actividad> actividades, String criterio, List<Tarea> tareasEncontradas) {
         Nodo<Actividad> actual = actividades.getCabeza();
@@ -164,23 +177,7 @@ public class GestionConsultas {
         DESDE_ACTIVIDAD_ESPECIFICA
     }
 
-    public static class TiempoProceso {
-        private final int tiempoMinimo;
-        private final int tiempoMaximo;
 
-        public TiempoProceso(int tiempoMinimo, int tiempoMaximo) {
-            this.tiempoMinimo = tiempoMinimo;
-            this.tiempoMaximo = tiempoMaximo;
-        }
-
-        public int getTiempoMinimo() {
-            return tiempoMinimo;
-        }
-
-        public int getTiempoMaximo() {
-            return tiempoMaximo;
-        }
-    }
 
     private static class TiempoActividad {
         private final int tiempoMinimo;
