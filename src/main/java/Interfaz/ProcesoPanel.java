@@ -1,226 +1,360 @@
-package Interfaz;
+    package Interfaz;
 
-import Funcionalidades.GestionProcesos;
-import ModelosBase.Proceso;
+    import Funcionalidades.GestionProcesos;
+    import ModelosBase.Proceso;
 
-import javax.swing.*;
-import javax.swing.border.EmptyBorder;
-import javax.swing.border.TitledBorder;
-import javax.swing.event.ListSelectionListener;
-import java.awt.*;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
-import java.util.UUID;
+    import javax.swing.*;
+    import javax.swing.border.*;
+    import javax.swing.event.ListSelectionListener;
+    import java.awt.*;
+    import java.awt.event.*;
+    import java.util.UUID;
 
-public class ProcesoPanel extends JPanel {
-    private final GestionProcesos gestionProcesos;
-    private final JTextField nombreProcesoField;
-    private final DefaultListModel<String> procesosListModel;
-    private final JList<String> procesosList;
-    private UUID selectedProcesoId;
-    private java.util.List<Runnable> actividadListeners = new java.util.ArrayList<>();
+    public class ProcesoPanel extends JPanel {
+        private final GestionProcesos gestionProcesos;
+        private final JTextField nombreProcesoField;
+        private final DefaultListModel<String> procesosListModel;
+        private final JList<String> procesosList;
+        private UUID selectedProcesoId;
+        private java.util.List<Runnable> actividadListeners = new java.util.ArrayList<>();
 
+        // Colores consistentes con el diseño del login
+        private Color primaryColor = new Color(147, 112, 219);
+        private Color secondaryColor = new Color(138, 43, 226);
+        private Color hoverColor = new Color(123, 104, 238);
 
+        public ProcesoPanel(GestionProcesos gestionProcesos) {
+            this.gestionProcesos = gestionProcesos;
+            setLayout(new BorderLayout());
+            // Cambiamos el tamaño preferido a 300x500 para que coincida con el panel izquierdo
+            setPreferredSize(new Dimension(300, 500));
 
-    public ProcesoPanel(GestionProcesos gestionProcesos) {
-        this.gestionProcesos = gestionProcesos;
-        this.setLayout(new BorderLayout(10, 10));
-        this.setBorder(new EmptyBorder(10, 10, 10, 10));
+            // Panel principal con degradado
+            JPanel mainPanel = new JPanel() {
+                @Override
+                protected void paintComponent(Graphics g) {
+                    super.paintComponent(g);
+                    Graphics2D g2d = (Graphics2D) g;
+                    g2d.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
+                    g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
-        // Definición de los nuevos colores para mantener consistencia
-        Color colorFondoPrincipal = new Color(147, 112, 219);    // Morado principal
-        Color colorSecundario = new Color(138, 43, 226);        // Morado más claro
-        Color colorAccent = new Color(123, 104, 238);         // Morado claro/lavanda
-        Color colorTexto = Color.WHITE;                        // Texto blanco
+                    int w = getWidth();
+                    int h = getHeight();
 
-        // Panel superior para crear procesos
-        JPanel creacionPanel = new JPanel(new BorderLayout(5, 5));
-        creacionPanel.setBackground(colorFondoPrincipal);
+                    // Crear degradado de tres colores
+                    float[] dist = {0.0f, 0.5f, 1.0f};
+                    Color[] colors = {primaryColor, new Color(142, 68, 223), secondaryColor};
+                    LinearGradientPaint gp = new LinearGradientPaint(0, 0, 0, h, dist, colors);
+                    g2d.setPaint(gp);
+                    g2d.fillRect(0, 0, w, h);
 
-        // Crear un TitledBorder directamente
-        TitledBorder titledBorder = BorderFactory.createTitledBorder(
-                BorderFactory.createLineBorder(colorAccent, 2),
-                "Crear Nuevo Proceso"
-        );
-        titledBorder.setTitleColor(colorTexto);
-        titledBorder.setTitleFont(new Font("Dialog", Font.BOLD, 14));
-        creacionPanel.setBorder(BorderFactory.createCompoundBorder(
-                titledBorder,
-                BorderFactory.createEmptyBorder(10, 10, 10, 10)
-        ));
+                    // Agregar patrón de puntos
+                    g2d.setColor(new Color(255, 255, 255, 20));
+                    for (int i = 0; i < w; i += 20) {
+                        for (int j = 0; j < h; j += 20) {
+                            g2d.fillOval(i, j, 2, 2);
+                        }
+                    }
+                }
+            };
+            mainPanel.setLayout(new BoxLayout(mainPanel, BoxLayout.Y_AXIS));
 
-        nombreProcesoField = new JTextField(20);
-        nombreProcesoField.setBackground(colorSecundario.darker());
-        nombreProcesoField.setForeground(colorTexto);
-        nombreProcesoField.setCaretColor(colorTexto);
-        nombreProcesoField.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createLineBorder(colorAccent),
-                BorderFactory.createEmptyBorder(5, 5, 5, 5)
-        ));
-        nombreProcesoField.setFont(new Font("Dialog", Font.PLAIN, 14));
+            JPanel topPanel = new JPanel();
+            topPanel.setLayout(new BoxLayout(topPanel, BoxLayout.Y_AXIS));
+            topPanel.setOpaque(false);
+            topPanel.setBorder(BorderFactory.createEmptyBorder(20, 25, 20, 25));
 
-        JLabel lblNombre = new JLabel("Nombre:");
-        lblNombre.setForeground(colorTexto);
-        lblNombre.setFont(new Font("Dialog", Font.BOLD, 14));
+            // Título con sombra
+            JLabel titleLabel = new JLabel("Gestión de Procesos");
+            titleLabel.setFont(new Font("Segoe UI", Font.BOLD, 20));
+            titleLabel.setForeground(Color.WHITE);
+            titleLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+            topPanel.add(titleLabel);
+            topPanel.add(Box.createVerticalStrut(20));
 
-        JButton crearButton = new JButton("Crear Proceso");
-        crearButton.setBackground(colorAccent);
-        crearButton.setForeground(colorTexto);
-        crearButton.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createLineBorder(colorAccent.darker(), 1),
-                BorderFactory.createEmptyBorder(8, 15, 8, 15)
-        ));
-        crearButton.setFocusPainted(false);
-        crearButton.setFont(new Font("Dialog", Font.BOLD, 14));
+            // Campo de nombre de proceso
+            JLabel nombreLabel = new JLabel("Nombre del Proceso");
+            nombreLabel.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+            nombreLabel.setForeground(Color.WHITE);
+            nombreLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+            topPanel.add(nombreLabel);
+            topPanel.add(Box.createVerticalStrut(10));
 
-        creacionPanel.add(lblNombre, BorderLayout.WEST);
-        creacionPanel.add(nombreProcesoField, BorderLayout.CENTER);
-        creacionPanel.add(crearButton, BorderLayout.EAST);
+            nombreProcesoField = createStyledTextField();
+            nombreProcesoField.setMaximumSize(new Dimension(Integer.MAX_VALUE, 40));
+            topPanel.add(nombreProcesoField);
+            topPanel.add(Box.createVerticalStrut(20));
 
-        // Panel central para lista de procesos
-        procesosListModel = new DefaultListModel<>();
-        procesosList = new JList<>(procesosListModel);
-        procesosList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-        procesosList.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
-        procesosList.setBackground(colorSecundario);
-        procesosList.setForeground(colorTexto);
-        procesosList.setSelectionBackground(colorAccent);
-        procesosList.setSelectionForeground(colorTexto);
-        procesosList.setFont(new Font("Dialog", Font.PLAIN, 14));
+            // Panel central para la lista
+            JPanel centerPanel = new JPanel();
+            centerPanel.setLayout(new BorderLayout());
+            centerPanel.setOpaque(false);
+            centerPanel.setBorder(BorderFactory.createEmptyBorder(0, 25, 20, 25));
 
-        JScrollPane scrollPane = new JScrollPane(procesosList);
+            // Lista de procesos con estilo personalizado
+            procesosListModel = new DefaultListModel<>();
+            procesosList = new JList<>(procesosListModel);
+            procesosList.setCellRenderer(new CustomListCellRenderer());
+            procesosList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 
-        // Crear otro TitledBorder para el scrollPane
-        TitledBorder scrollPaneBorder = BorderFactory.createTitledBorder(
-                BorderFactory.createLineBorder(colorAccent, 2),
-                "Procesos Existentes"
-        );
-        scrollPaneBorder.setTitleColor(Color.black);
-        scrollPaneBorder.setTitleFont(new Font("Dialog", Font.BOLD, 14));
-        scrollPane.setBorder(BorderFactory.createCompoundBorder(
-                scrollPaneBorder,
-                BorderFactory.createEmptyBorder(10, 10, 10, 10)
-        ));
-        scrollPane.getViewport().setBackground(colorFondoPrincipal);
+            JScrollPane scrollPane = new JScrollPane(procesosList) {
+                @Override
+                protected void paintComponent(Graphics g) {
+                    Graphics2D g2d = (Graphics2D) g;
+                    g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                    g2d.setColor(new Color(255, 255, 255, 40));
+                    g2d.fillRoundRect(0, 0, getWidth()-1, getHeight()-1, 20, 20);
+                    super.paintComponent(g);
+                }
+            };
 
-        // Panel inferior para acciones
-        JPanel accionesPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
-        accionesPanel.setBackground(colorFondoPrincipal);
-        accionesPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+            scrollPane.setOpaque(false);
+            scrollPane.getViewport().setOpaque(false);
+            scrollPane.setBorder(new RoundedBorder(20));
+            centerPanel.add(scrollPane, BorderLayout.CENTER);
 
-        JButton eliminarButton = new JButton("Eliminar Proceso");
-        eliminarButton.setBackground(colorAccent);
-        eliminarButton.setForeground(colorTexto);
-        eliminarButton.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createLineBorder(colorAccent.darker(), 1),
-                BorderFactory.createEmptyBorder(8, 15, 8, 15)
-        ));
-        eliminarButton.setFocusPainted(false);
-        eliminarButton.setFont(new Font("Dialog", Font.BOLD, 14));
-        accionesPanel.add(eliminarButton);
+            // Panel inferior para botones
+            JPanel bottomPanel = new JPanel();
+            bottomPanel.setLayout(new FlowLayout(FlowLayout.LEFT, 20, 5));
+            bottomPanel.setOpaque(false);
+            bottomPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 70, 10));
 
-        // Establecer el color de fondo del panel principal
-        this.setBackground(colorFondoPrincipal);
+            // Botones con estilo
+            JButton crearButton = createStyledButton("Crear Proceso", 12); // Tamaño de fuente ajustado a 12
+            crearButton.setPreferredSize(new Dimension(100, 35));
+            JButton eliminarButton = createStyledButton("Eliminar Proceso", 12);
+            eliminarButton.setPreferredSize(new Dimension(100, 35));
 
-        // Agregar los paneles al panel principal
-        this.add(creacionPanel, BorderLayout.NORTH);
-        this.add(scrollPane, BorderLayout.CENTER);
-        this.add(accionesPanel, BorderLayout.SOUTH);
+            bottomPanel.setLayout(new BoxLayout(bottomPanel, BoxLayout.X_AXIS));
+            bottomPanel.add(crearButton);
+            bottomPanel.add(Box.createHorizontalStrut(10)); // Espacio entre botones
+            bottomPanel.add(eliminarButton);
 
-        // Personalizar los JOptionPane para mensajes
-        UIManager.put("OptionPane.background", colorFondoPrincipal);
-        UIManager.put("OptionPane.messageForeground", colorTexto);
-        UIManager.put("Panel.background", colorFondoPrincipal);
-        UIManager.put("OptionPane.messageFont", new Font("Dialog", Font.PLAIN, 14));
-        UIManager.put("OptionPane.buttonFont", new Font("Dialog", Font.BOLD, 14));
+            // Agregar todos los paneles al panel principal
+            mainPanel.add(topPanel);
+            mainPanel.add(centerPanel);
+            mainPanel.add(bottomPanel);
 
-        // Eventos
-        crearButton.addActionListener(e -> {
-            String nombre = nombreProcesoField.getText().trim();
-            if (!nombre.isEmpty()) {
-                Proceso nuevoProceso = gestionProcesos.crearProceso(nombre);
-                procesosListModel.addElement(nombre + " (" + nuevoProceso.getId() + ")");
-                nombreProcesoField.setText("");
-                JOptionPane.showMessageDialog(this,
-                        "Proceso creado exitosamente",
-                        "Éxito",
-                        JOptionPane.INFORMATION_MESSAGE);
-                // Notificar a los listeners de actividad que se ha creado un nuevo proceso
-                notifyActividadCreated();
-            } else {
-                JOptionPane.showMessageDialog(this,
-                        "Por favor ingrese un nombre para el proceso",
-                        "Error",
-                        JOptionPane.ERROR_MESSAGE);
-            }
-        });
+            // Agregar el panel principal al ProcesoPanel
+            add(mainPanel, BorderLayout.CENTER);
 
-        procesosList.addListSelectionListener(e -> {
-            if (!e.getValueIsAdjusting() && procesosList.getSelectedIndex() != -1) {
-                String selectedItem = procesosList.getSelectedValue();
-                String idStr = selectedItem.substring(selectedItem.indexOf("(") + 1, selectedItem.indexOf(")"));
-                selectedProcesoId = UUID.fromString(idStr);
-            }
-        });
+            // Eventos
+            crearButton.addActionListener(e -> {
+                String nombre = nombreProcesoField.getText().trim();
+                if (!nombre.isEmpty()) {
+                    Proceso nuevoProceso = gestionProcesos.crearProceso(nombre);
+                    procesosListModel.addElement(nombre + " (" + nuevoProceso.getId() + ")");
+                    nombreProcesoField.setText("");
+                    showSuccessDialog("Proceso creado exitosamente");
+                    notifyActividadCreated();
+                } else {
+                    showErrorDialog("Por favor ingrese un nombre para el proceso");
+                }
+            });
 
-        eliminarButton.addActionListener(e -> {
-            if (selectedProcesoId != null) {
-                gestionProcesos.eliminarProceso(selectedProcesoId);
-                procesosListModel.remove(procesosList.getSelectedIndex());
-                selectedProcesoId = null;
-                JOptionPane.showMessageDialog(this,
-                        "Proceso eliminado exitosamente",
-                        "Éxito",
-                        JOptionPane.INFORMATION_MESSAGE);
-            } else {
-                JOptionPane.showMessageDialog(this,
-                        "Por favor seleccione un proceso para eliminar",
-                        "Error",
-                        JOptionPane.ERROR_MESSAGE);
-            }
-        });
+            eliminarButton.addActionListener(e -> {
+                if (selectedProcesoId != null) {
+                    int confirmacion = showConfirmDialog("¿Está seguro de eliminar este proceso?");
+                    if (confirmacion == JOptionPane.YES_OPTION) {
+                        gestionProcesos.eliminarProceso(selectedProcesoId);
+                        procesosListModel.remove(procesosList.getSelectedIndex());
+                        selectedProcesoId = null;
+                        showSuccessDialog("Proceso eliminado exitosamente");
+                    }
+                } else {
+                    showErrorDialog("Por favor seleccione un proceso para eliminar");
+                }
+            });
 
-        // Efectos hover para los botones
-        configureButtonHover(crearButton, colorAccent, colorSecundario);
-        configureButtonHover(eliminarButton, colorAccent, colorSecundario);
-    }
+            procesosList.addListSelectionListener(e -> {
+                if (!e.getValueIsAdjusting() && procesosList.getSelectedIndex() != -1) {
+                    String selectedItem = procesosList.getSelectedValue();
+                    String idStr = selectedItem.substring(selectedItem.indexOf("(") + 1, selectedItem.indexOf(")"));
+                    selectedProcesoId = UUID.fromString(idStr);
+                }
+            });
 
-    private void configureButtonHover(JButton button, Color defaultColor, Color hoverColor) {
-        button.addMouseListener(new MouseAdapter() {
+            add(mainPanel);
+        }
+
+        private JTextField createStyledTextField() {
+            JTextField field = new JTextField() {
+                @Override
+                protected void paintComponent(Graphics g) {
+                    Graphics2D g2d = (Graphics2D) g.create();
+                    g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+
+                    g2d.setColor(new Color(255, 255, 255, 40));
+                    g2d.fillRoundRect(0, 0, getWidth()-1, getHeight()-1, 20, 20);
+                    g2d.dispose();
+
+                    super.paintComponent(g);
+                }
+
+                @Override
+                protected void paintBorder(Graphics g) {
+                    Graphics2D g2d = (Graphics2D) g.create();
+                    g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                    g2d.setColor(new Color(255, 255, 255, 100));
+                    g2d.drawRoundRect(0, 0, getWidth()-1, getHeight()-1, 20, 20);
+                    g2d.dispose();
+                }
+            };
+
+            field.setOpaque(false);
+            field.setForeground(Color.WHITE);
+            field.setCaretColor(Color.WHITE);
+            field.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+            field.setBorder(BorderFactory.createEmptyBorder(4, 10, 4, 10));
+
+            return field;
+        }
+
+        private JButton createStyledButton(String text, int fontSize) {
+            JButton button = new JButton(text) {
+                @Override
+                protected void paintComponent(Graphics g) {
+                    Graphics2D g2d = (Graphics2D) g;
+                    g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                    if (getModel().isPressed()) {
+                        g2d.setColor(hoverColor.darker());
+                    } else if (getModel().isRollover()) {
+                        g2d.setColor(hoverColor);
+                    } else {
+                        g2d.setColor(primaryColor);
+                    }
+                    g2d.fillRoundRect(0, 0, getWidth(), getHeight(), 20, 20);
+                    g2d.setColor(Color.WHITE);
+                    FontMetrics fm = g2d.getFontMetrics();
+                    int x = (getWidth() - fm.stringWidth(getText())) / 2;
+                    int y = ((getHeight() - fm.getHeight()) / 2) + fm.getAscent();
+                    g2d.drawString(getText(), x, y);
+                }
+            };
+
+            button.setFont(new Font("Segoe UI", Font.BOLD, fontSize));
+            button.setForeground(Color.WHITE);
+            button.setFocusPainted(false);
+            button.setBorderPainted(false);
+            button.setContentAreaFilled(false);
+            button.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+            return button;
+        }
+
+        private void showSuccessDialog(String message) {
+            JDialog dialog = createStyledDialog("Éxito", message, new Color(0, 150, 0));
+            dialog.setVisible(true);
+        }
+
+        private void showErrorDialog(String message) {
+            JDialog dialog = createStyledDialog("Error", message, new Color(150, 0, 0));
+            dialog.setVisible(true);
+        }
+
+        private int showConfirmDialog(String message) {
+            return JOptionPane.showConfirmDialog(
+                    this,
+                    message,
+                    "Confirmar",
+                    JOptionPane.YES_NO_OPTION,
+                    JOptionPane.QUESTION_MESSAGE
+            );
+        }
+
+        private JDialog createStyledDialog(String title, String message, Color baseColor) {
+            JDialog dialog = new JDialog((Frame) SwingUtilities.getWindowAncestor(this), title, true);
+            dialog.setSize(300, 150);
+            dialog.setLocationRelativeTo(this);
+            dialog.setUndecorated(true);
+
+            JPanel panel = new JPanel() {
+                @Override
+                protected void paintComponent(Graphics g) {
+                    super.paintComponent(g);
+                    Graphics2D g2d = (Graphics2D) g;
+                    g2d.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
+
+                    GradientPaint gp = new GradientPaint(
+                            0, 0, baseColor,
+                            0, getHeight(), baseColor.darker()
+                    );
+                    g2d.setPaint(gp);
+                    g2d.fillRect(0, 0, getWidth(), getHeight());
+                }
+            };
+            panel.setLayout(null);
+
+            JLabel messageLabel = new JLabel(message);
+            messageLabel.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+            messageLabel.setForeground(Color.WHITE);
+            messageLabel.setBounds(20, 20, 260, 60);
+            messageLabel.setHorizontalAlignment(SwingConstants.CENTER);
+            panel.add(messageLabel);
+
+            JButton okButton = createStyledButton("Aceptar",20);
+            okButton.setBounds(100, 90, 100, 35);
+            okButton.addActionListener(e -> dialog.dispose());
+            panel.add(okButton);
+
+            dialog.add(panel);
+            return dialog;
+        }
+
+        // CustomListCellRenderer para estilizar los items de la lista
+        private class CustomListCellRenderer extends DefaultListCellRenderer {
             @Override
-            public void mouseEntered(MouseEvent e) {
-                button.setBackground(hoverColor);
+            public Component getListCellRendererComponent(JList<?> list, Object value,
+                                                          int index, boolean isSelected, boolean cellHasFocus) {
+                Component c = super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
+                setOpaque(isSelected);
+                setBackground(isSelected ? new Color(255, 255, 255, 50) : new Color(0, 0, 0, 0));
+                setForeground(Color.black);
+                setBorder(BorderFactory.createEmptyBorder(5, 10, 5, 10));
+                return c;
+            }
+        }
+
+        private static class RoundedBorder extends AbstractBorder {
+            private int radius;
+
+            RoundedBorder(int radius) {
+                this.radius = radius;
             }
 
             @Override
-            public void mouseExited(MouseEvent e) {
-                button.setBackground(defaultColor);
+            public void paintBorder(Component c, Graphics g, int x, int y, int width, int height) {
+                Graphics2D g2d = (Graphics2D) g;
+                g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                g2d.setColor(new Color(255, 255, 255, 100));
+                g2d.drawRoundRect(x, y, width - 1, height - 1, radius, radius);
             }
-        });
-    }
-    public UUID getSelectedProcesoId() {
-        return selectedProcesoId;
-    }
-    public void addActividadListener(Runnable listener) {
-        actividadListeners.add(listener);
-    }
 
-    public void notifyActividadCreated() {
-        for (Runnable listener : actividadListeners) {
-            listener.run();
+            @Override
+            public Insets getBorderInsets(Component c) {
+                return new Insets(this.radius + 1, this.radius + 1, this.radius + 2, this.radius);
+            }
+        }
+
+        // Métodos públicos necesarios
+        public UUID getSelectedProcesoId() {
+            return selectedProcesoId;
+        }
+
+        public void addActividadListener(Runnable listener) {
+            actividadListeners.add(listener);
+        }
+
+        public void notifyActividadCreated() {
+            for (Runnable listener : actividadListeners) {
+                listener.run();
+            }
+        }
+
+        public GestionProcesos getGestionProcesos() {
+            return gestionProcesos;
+        }
+
+        public void addProcesoSelectionListener(ListSelectionListener listener) {
+            procesosList.addListSelectionListener(listener);
         }
     }
-    public GestionProcesos getGestionProcesos() {
-        return gestionProcesos;
-    }
-
-    /**
-     * Adds a ListSelectionListener to the procesos list.
-     * This method allows other components to listen for selection changes in the process list.
-     *
-     * @param listener The ListSelectionListener to be added
-     */
-    public void addProcesoSelectionListener(ListSelectionListener listener) {
-        procesosList.addListSelectionListener(listener);
-    }
-}

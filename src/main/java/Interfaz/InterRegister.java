@@ -412,7 +412,7 @@ public class InterRegister extends JFrame {
         return button;
     }
 
-    private class RoundedBorder extends AbstractBorder {
+    public class RoundedBorder extends AbstractBorder {
         private int radius;
 
         RoundedBorder(int radius) {

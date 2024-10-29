@@ -1,9 +1,6 @@
 package Interfaz;
 
-import Funcionalidades.GestionActividades;
-import Funcionalidades.GestionConsultas;
-import Funcionalidades.GestionProcesos;
-import Funcionalidades.GestionTareas;
+import Funcionalidades.*;
 import ModelosBase.Proceso;
 
 import javax.swing.*;
@@ -95,7 +92,6 @@ public class MainApplication extends JFrame {
             e.printStackTrace();
         }
     }
-
 
     public static void main(String[] args) {
         try {
