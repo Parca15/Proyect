@@ -207,7 +207,13 @@ public class GestionConsultas {
     private void buscarDesdeActividad(Actividad actividad, String criterio, List<Tarea> tareasEncontradas) {
         Actividad actual = actividad;
         while (actual != null) {
-            buscarEnActividad(actual, criterio, tareasEncontradas);
+            // Agregar todas las tareas de la actividad sin filtrar por descripción
+            Cola<Tarea> tareas = actual.getTareas();
+            Nodo<Tarea> nodoTarea = tareas.getNodoPrimero();
+            while (nodoTarea != null) {
+                tareasEncontradas.add(nodoTarea.getValorNodo());
+                nodoTarea = nodoTarea.getSiguienteNodo();
+            }
             actual = actual.getSiguiente();
         }
     }
@@ -218,7 +224,8 @@ public class GestionConsultas {
 
         while (actual != null) {
             Tarea tarea = actual.getValorNodo();
-            if (tarea.getDescripcion().toLowerCase().contains(criterio.toLowerCase())) {
+            // Solo aplicar el filtro por descripción si hay un criterio
+            if (criterio.isEmpty() || tarea.getDescripcion().toLowerCase().contains(criterio.toLowerCase())) {
                 tareasEncontradas.add(tarea);
             }
             actual = actual.getSiguienteNodo();
