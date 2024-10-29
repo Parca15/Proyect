@@ -20,6 +20,112 @@ public class GestionConsultas {
         this.gestionProcesos = gestionProcesos;
     }
 
+    public void intercambiarActividades(UUID procesoId, String nombreActividad1, String nombreActividad2, boolean intercambiarTareas) {
+        Proceso proceso = gestionProcesos.buscarProceso(procesoId);
+        if (proceso == null) {
+            throw new IllegalStateException("Proceso no encontrado.");
+        }
+
+        ListaEnlazada<Actividad> actividades = proceso.getActividades();
+        Actividad actividad1 = buscarActividadPorNombre(actividades, nombreActividad1);
+        Actividad actividad2 = buscarActividadPorNombre(actividades, nombreActividad2);
+
+        if (actividad1 == null || actividad2 == null) {
+            throw new IllegalArgumentException("Una o ambas actividades no fueron encontradas.");
+        }
+
+        // Almacenar las tareas originales
+        Cola<Tarea> tareasActividad1 = new Cola<>();
+        Cola<Tarea> tareasActividad2 = new Cola<>();
+
+        // Copiar las tareas originales
+        copiarTareas(actividad1.getTareas(), tareasActividad1);
+        copiarTareas(actividad2.getTareas(), tareasActividad2);
+
+        // Realizar el intercambio de posiciones en la lista enlazada
+        intercambiarPosicionesActividades(actividades, actividad1, actividad2);
+
+        // Si no se deben intercambiar las tareas, restaurar las tareas originales
+        if (!intercambiarTareas) {
+            actividad1.setTareas(tareasActividad2);
+            actividad2.setTareas(tareasActividad1);
+        }
+    }
+
+    private void copiarTareas(Cola<Tarea> origen, Cola<Tarea> destino) {
+        Nodo<Tarea> actual = origen.getNodoPrimero();
+        while (actual != null) {
+            destino.encolar(actual.getValorNodo());
+            actual = actual.getSiguienteNodo();
+        }
+    }
+
+    private void intercambiarPosicionesActividades(ListaEnlazada<Actividad> actividades,
+                                                   Actividad actividad1,
+                                                   Actividad actividad2) {
+        Nodo<Actividad> nodoActual = actividades.getCabeza();
+        Nodo<Actividad> nodoAnterior1 = null;
+        Nodo<Actividad> nodo1 = null;
+        Nodo<Actividad> nodoAnterior2 = null;
+        Nodo<Actividad> nodo2 = null;
+        Nodo<Actividad> nodoAnterior = null;
+
+        // Encontrar los nodos y sus anteriores
+        while (nodoActual != null) {
+            if (nodoActual.getValorNodo().equals(actividad1)) {
+                nodoAnterior1 = nodoAnterior;
+                nodo1 = nodoActual;
+            }
+            if (nodoActual.getValorNodo().equals(actividad2)) {
+                nodoAnterior2 = nodoAnterior;
+                nodo2 = nodoActual;
+            }
+            nodoAnterior = nodoActual;
+            nodoActual = nodoActual.getSiguienteNodo();
+        }
+
+        if (nodo1 != null && nodo2 != null) {
+            // Guardar referencias temporales
+            Nodo<Actividad> siguiente1 = nodo1.getSiguienteNodo();
+            Nodo<Actividad> siguiente2 = nodo2.getSiguienteNodo();
+
+            // Caso especial: nodos adyacentes
+            if (nodo1.getSiguienteNodo() == nodo2) {
+                nodo1.setSiguienteNodo(siguiente2);
+                nodo2.setSiguienteNodo(nodo1);
+                if (nodoAnterior1 != null) {
+                    nodoAnterior1.setSiguienteNodo(nodo2);
+                } else {
+                    actividades.setCabeza(nodo2);
+                }
+            } else if (nodo2.getSiguienteNodo() == nodo1) {
+                nodo2.setSiguienteNodo(siguiente1);
+                nodo1.setSiguienteNodo(nodo2);
+                if (nodoAnterior2 != null) {
+                    nodoAnterior2.setSiguienteNodo(nodo1);
+                } else {
+                    actividades.setCabeza(nodo1);
+                }
+            } else {
+                // Caso general: nodos no adyacentes
+                nodo1.setSiguienteNodo(siguiente2);
+                nodo2.setSiguienteNodo(siguiente1);
+
+                if (nodoAnterior1 != null) {
+                    nodoAnterior1.setSiguienteNodo(nodo2);
+                } else {
+                    actividades.setCabeza(nodo2);
+                }
+
+                if (nodoAnterior2 != null) {
+                    nodoAnterior2.setSiguienteNodo(nodo1);
+                } else {
+                    actividades.setCabeza(nodo1);
+                }
+            }
+        }
+    }
+
     public List<Tarea> buscarTareas(UUID procesoId, TipoBusqueda tipoBusqueda, String criterio) {
         Proceso proceso = gestionProcesos.buscarProceso(procesoId);
         if (proceso == null) {
@@ -34,7 +140,6 @@ public class GestionConsultas {
                 buscarDesdeInicio(actividades, criterio, tareasEncontradas);
                 break;
             case DESDE_ACTIVIDAD_ACTUAL:
-                // Asumimos que la actividad actual es la última agregada
                 Actividad actividadActual = encontrarUltimaActividad(actividades);
                 if (actividadActual != null) {
                     buscarDesdeActividad(actividadActual, criterio, tareasEncontradas);
@@ -60,23 +165,19 @@ public class GestionConsultas {
         int tiempoMinimo = 0;
         int tiempoMaximo = 0;
 
-        // Recorrer todas las actividades
         Nodo<Actividad> actualActividad = proceso.getActividades().getCabeza();
         while (actualActividad != null) {
             Actividad actividad = actualActividad.getValorNodo();
             Cola<Tarea> tareas = actividad.getTareas();
             Nodo<Tarea> actualTarea = tareas.getNodoPrimero();
 
-            // Para cada actividad, recorrer sus tareas
             while (actualTarea != null) {
                 Tarea tarea = actualTarea.getValorNodo();
 
-                // Para tiempo mínimo: solo sumar si tanto la actividad como la tarea son obligatorias
                 if (actividad.isObligatoria() && tarea.isObligatoria()) {
                     tiempoMinimo += tarea.getDuracion();
                 }
 
-                // Para tiempo máximo: sumar todas las tareas independientemente
                 tiempoMaximo += tarea.getDuracion();
 
                 actualTarea = actualTarea.getSiguienteNodo();
@@ -85,36 +186,16 @@ public class GestionConsultas {
             actualActividad = actualActividad.getSiguienteNodo();
         }
 
-        // Calcular el tiempo transcurrido desde la creación del proceso
         LocalDateTime ahora = LocalDateTime.now();
         Duration tiempoTranscurrido = Duration.between(proceso.getFechaInicio(), ahora);
         long minutosTranscurridos = tiempoTranscurrido.toMinutes();
 
-        // Calcular tiempos restantes
         int tiempoMinimoRestante = Math.max(tiempoMinimo - (int)minutosTranscurridos, 0);
         int tiempoMaximoRestante = Math.max(tiempoMaximo - (int)minutosTranscurridos, 0);
 
         return new TiempoProceso(tiempoMinimoRestante, tiempoMaximoRestante);
     }
 
-    // Clase auxiliar para devolver los tiempos
-    public static class TiempoProceso {
-        private final int tiempoMinimo;
-        private final int tiempoMaximo;
-
-        public TiempoProceso(int tiempoMinimo, int tiempoMaximo) {
-            this.tiempoMinimo = tiempoMinimo;
-            this.tiempoMaximo = tiempoMaximo;
-        }
-
-        public int getTiempoMinimo() {
-            return tiempoMinimo;
-        }
-
-        public int getTiempoMaximo() {
-            return tiempoMaximo;
-        }
-    }
     private void buscarDesdeInicio(ListaEnlazada<Actividad> actividades, String criterio, List<Tarea> tareasEncontradas) {
         Nodo<Actividad> actual = actividades.getCabeza();
         while (actual != null) {
@@ -167,8 +248,22 @@ public class GestionConsultas {
         return null;
     }
 
-    public Object buscarTareasPorActividad(UUID id, String nombre) {
-        return null;
+    public static class TiempoProceso {
+        private final int tiempoMinimo;
+        private final int tiempoMaximo;
+
+        public TiempoProceso(int tiempoMinimo, int tiempoMaximo) {
+            this.tiempoMinimo = tiempoMinimo;
+            this.tiempoMaximo = tiempoMaximo;
+        }
+
+        public int getTiempoMinimo() {
+            return tiempoMinimo;
+        }
+
+        public int getTiempoMaximo() {
+            return tiempoMaximo;
+        }
     }
 
     public enum TipoBusqueda {
@@ -176,8 +271,6 @@ public class GestionConsultas {
         DESDE_ACTIVIDAD_ACTUAL,
         DESDE_ACTIVIDAD_ESPECIFICA
     }
-
-
 
     private static class TiempoActividad {
         private final int tiempoMinimo;

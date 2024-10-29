@@ -231,8 +231,7 @@ public class ActividadPanel extends JPanel {
             return;
         }
 
-        // Obtener lista de actividades del proceso seleccionado
-       List<String> actividades = gestionActividades.obtenerNombresActividades(procesoId);
+        List<String> actividades = gestionActividades.obtenerNombresActividades(procesoId);
         if (actividades.isEmpty()) {
             JOptionPane.showMessageDialog(this,
                     "No hay actividades disponibles para el proceso seleccionado",
@@ -244,12 +243,14 @@ public class ActividadPanel extends JPanel {
         // Crear y poblar los JComboBox con las actividades
         JComboBox<String> actividad1ComboBox = new JComboBox<>(actividades.toArray(new String[0]));
         JComboBox<String> actividad2ComboBox = new JComboBox<>(actividades.toArray(new String[0]));
+        JCheckBox intercambiarTareasCheck = new JCheckBox("Intercambiar tareas junto con las actividades");
 
-        JPanel panel = new JPanel(new GridLayout(4, 1));
+        JPanel panel = new JPanel(new GridLayout(5, 1));
         panel.add(new JLabel("Primera actividad:"));
         panel.add(actividad1ComboBox);
         panel.add(new JLabel("Segunda actividad:"));
         panel.add(actividad2ComboBox);
+        panel.add(intercambiarTareasCheck);
 
         int result = JOptionPane.showConfirmDialog(this, panel,
                 "Intercambiar Actividades",
@@ -260,16 +261,33 @@ public class ActividadPanel extends JPanel {
             String actividad1 = (String) actividad1ComboBox.getSelectedItem();
             String actividad2 = (String) actividad2ComboBox.getSelectedItem();
 
-            if (actividad1 != null && actividad2 != null && !actividad1.isEmpty() && !actividad2.isEmpty()) {
-                gestionActividades.intercambiarActividades(procesoId, actividad1, actividad2);
+            if (actividad1 != null && actividad2 != null && !actividad1.equals(actividad2)) {
+                try {
+                    gestionActividades.intercambiarActividades(procesoId,
+                            actividad1,
+                            actividad2,
+                            intercambiarTareasCheck.isSelected());
+
+                    JOptionPane.showMessageDialog(this,
+                            "Actividades intercambiadas exitosamente",
+                            "Éxito",
+                            JOptionPane.INFORMATION_MESSAGE);
+
+                    procesoPanel.notifyActividadCreated(); // Actualizar la vista
+                } catch (Exception ex) {
+                    JOptionPane.showMessageDialog(this,
+                            "Error al intercambiar actividades: " + ex.getMessage(),
+                            "Error",
+                            JOptionPane.ERROR_MESSAGE);
+                }
+            } else {
                 JOptionPane.showMessageDialog(this,
-                        "Actividades intercambiadas exitosamente",
-                        "Éxito",
-                        JOptionPane.INFORMATION_MESSAGE);
+                        "Por favor seleccione dos actividades diferentes",
+                        "Error",
+                        JOptionPane.ERROR_MESSAGE);
             }
         }
     }
-
 
     private void limpiarCampos() {
         nombreField.setText("");
