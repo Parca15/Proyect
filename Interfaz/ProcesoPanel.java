@@ -20,15 +20,7 @@ public class ProcesoPanel extends JPanel {
     private UUID selectedProcesoId;
     private java.util.List<Runnable> actividadListeners = new java.util.ArrayList<>();
 
-    public void addActividadListener(Runnable listener) {
-        actividadListeners.add(listener);
-    }
 
-    public void notifyActividadCreated() {
-        for (Runnable listener : actividadListeners) {
-            listener.run();
-        }
-    }
 
     public ProcesoPanel(GestionProcesos gestionProcesos) {
         this.gestionProcesos = gestionProcesos;
@@ -153,6 +145,8 @@ public class ProcesoPanel extends JPanel {
                         "Proceso creado exitosamente",
                         "Éxito",
                         JOptionPane.INFORMATION_MESSAGE);
+                // Notificar a los listeners de actividad que se ha creado un nuevo proceso
+                notifyActividadCreated();
             } else {
                 JOptionPane.showMessageDialog(this,
                         "Por favor ingrese un nombre para el proceso",
@@ -207,7 +201,15 @@ public class ProcesoPanel extends JPanel {
     public UUID getSelectedProcesoId() {
         return selectedProcesoId;
     }
+    public void addActividadListener(Runnable listener) {
+        actividadListeners.add(listener);
+    }
 
+    public void notifyActividadCreated() {
+        for (Runnable listener : actividadListeners) {
+            listener.run();
+        }
+    }
     public GestionProcesos getGestionProcesos() {
         return gestionProcesos;
     }

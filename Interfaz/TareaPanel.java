@@ -40,7 +40,7 @@ public class TareaPanel extends JPanel {
         Color colorSecundario = new Color(138, 43, 226);        // Morado más claro
         Color colorAccent = new Color(123, 104, 238);          // Morado claro/lavanda
         Color colorFondo = new Color(147, 112, 219, 100);    // Morado claro semi transparente
-        Color colorTexto = Color.WHITE;                      // Texto blanco
+        Color colorTexto = Color.black;                      // Texto blanco
 
         JTabbedPane tabbedPane = new JTabbedPane();
         tabbedPane.setBackground(colorSecundario);
@@ -220,7 +220,9 @@ public class TareaPanel extends JPanel {
         this.add(tabbedPane, BorderLayout.CENTER);
 
         // === Eventos ===
-        // [El resto del código de eventos se mantiene igual]
+        procesoPanel.addActividadListener(() -> {
+            SwingUtilities.invokeLater(this::actualizarComboBoxActividades);
+        });
         procesoPanel.addProcesoSelectionListener(e -> {
             if (!e.getValueIsAdjusting()) {
                 SwingUtilities.invokeLater(this::actualizarComboBoxActividades);
@@ -236,7 +238,12 @@ public class TareaPanel extends JPanel {
             }
         });
 
-        crearButton.addActionListener(e -> crearTarea());
+        crearButton.addActionListener(e -> {
+            // Código para crear una nueva actividad
+            crearTarea();
+            // Actualizar los comboboxes después de crear la nueva actividad
+            SwingUtilities.invokeLater(this::actualizarComboBoxActividades);
+        });
         buscarButton.addActionListener(e -> buscarTareas());
         calcularButton.addActionListener(e -> {
             UUID procesoId = procesoPanel.getSelectedProcesoId();
@@ -252,67 +259,67 @@ public class TareaPanel extends JPanel {
             }
         });
 
-        procesoPanel.addProcesoSelectionListener(e -> {
-            if (!e.getValueIsAdjusting()) {
-                UUID currentProcesoId = procesoPanel.getSelectedProcesoId();
-                if (currentProcesoId != null && !currentProcesoId.equals(lastSelectedProcesoId)) {
-                    lastSelectedProcesoId = currentProcesoId;
-                    actualizarComboBoxActividades();
-                }
-            }
-        });
+//        procesoPanel.addProcesoSelectionListener(e -> {
+//            if (!e.getValueIsAdjusting()) {
+//                UUID currentProcesoId = procesoPanel.getSelectedProcesoId();
+//                if (currentProcesoId != null && !currentProcesoId.equals(lastSelectedProcesoId)) {
+//                    lastSelectedProcesoId = currentProcesoId;
+//                    actualizarComboBoxActividades();
+//                }
+//            }
+//        });
     }
 
-    private void actualizarComboBoxActividades() {
-        // Limpiar los combobox
-        SwingUtilities.invokeLater(() -> {
-            actividadCombo.removeAllItems();
-            actividadBusquedaCombo.removeAllItems();
-        });
+   private void actualizarComboBoxActividades() {
+       // Limpiar los combobox
+       SwingUtilities.invokeLater(() -> {
+           actividadCombo.removeAllItems();
+           actividadBusquedaCombo.removeAllItems();
+       });
 
-        UUID procesoId = procesoPanel.getSelectedProcesoId();
-        if (procesoId == null) {
-            return;
-        }
+       UUID procesoId = procesoPanel.getSelectedProcesoId();
+       if (procesoId == null) {
+           return;
+       }
 
-        // Obtener el proceso seleccionado directamente
-        Proceso proceso = procesoPanel.getGestionProcesos().buscarProceso(procesoId);
-        System.out.println("Actualizando actividades para proceso: " + procesoId); // Debug
+       // Obtener el proceso seleccionado directamente
+       Proceso proceso = procesoPanel.getGestionProcesos().buscarProceso(procesoId);
+       System.out.println("Actualizando actividades para proceso: " + procesoId); // Debug
 
-        if (proceso != null) {
-            ListaEnlazada<Actividad> actividades = proceso.getActividades();
+       if (proceso != null) {
+           ListaEnlazada<Actividad> actividades = proceso.getActividades();
 
-            if (actividades != null && actividades.getCabeza() != null) {
-                lastSelectedProcesoId = procesoId;
+           if (actividades != null && actividades.getCabeza() != null) {
+               lastSelectedProcesoId = procesoId;
 
-                // Usar SwingUtilities.invokeLater para asegurar que las actualizaciones de UI
-                // se realizan en el EDT (Event Dispatch Thread)
-                SwingUtilities.invokeLater(() -> {
-                    Nodo<Actividad> actual = actividades.getCabeza();
-                    while (actual != null) {
-                        String nombreActividad = actual.getValorNodo().getNombre();
-                        System.out.println("Agregando actividad: " + nombreActividad); // Debug
-                        actividadCombo.addItem(nombreActividad);
-                        actividadBusquedaCombo.addItem(nombreActividad);
-                        actual = actual.getSiguienteNodo();
-                    }
+               // Usar SwingUtilities.invokeLater para asegurar que las actualizaciones de UI
+               // se realizan en el EDT (Event Dispatch Thread)
+               SwingUtilities.invokeLater(() -> {
+                   Nodo<Actividad> actual = actividades.getCabeza();
+                   while (actual != null) {
+                       String nombreActividad = actual.getValorNodo().getNombre();
+                       System.out.println("Agregando actividad: " + nombreActividad); // Debug
+                       actividadCombo.addItem(nombreActividad);
+                       actividadBusquedaCombo.addItem(nombreActividad);
+                       actual = actual.getSiguienteNodo();
+                   }
 
-                    // Seleccionar el primer item si hay items disponibles
-                    if (actividadCombo.getItemCount() > 0) {
-                        actividadCombo.setSelectedIndex(0);
-                        actividadBusquedaCombo.setSelectedIndex(0);
-                    } else {
-                        actividadCombo.setSelectedIndex(-1);
-                        actividadBusquedaCombo.setSelectedIndex(-1);
-                    }
-                });
-            } else {
-                System.out.println("No se encontraron actividades para el proceso"); // Debug
-            }
-        } else {
-            System.out.println("No se encontró el proceso con ID: " + procesoId); // Debug
-        }
-    }
+                   // Seleccionar el primer item si hay items disponibles
+                   if (actividadCombo.getItemCount() > 0) {
+                       actividadCombo.setSelectedIndex(0);
+                       actividadBusquedaCombo.setSelectedIndex(0);
+                   } else {
+                       actividadCombo.setSelectedIndex(-1);
+                       actividadBusquedaCombo.setSelectedIndex(-1);
+                   }
+               });
+           } else {
+               System.out.println("No se encontraron actividades para el proceso"); // Debug
+           }
+       } else {
+           System.out.println("No se encontró el proceso con ID: " + procesoId); // Debug
+       }
+   }
 
     // Método adicional para forzar la actualización manual si es necesario
     public void forzarActualizacionActividades() {
