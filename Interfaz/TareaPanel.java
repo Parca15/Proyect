@@ -259,15 +259,6 @@ public class TareaPanel extends JPanel {
             }
         });
 
-//        procesoPanel.addProcesoSelectionListener(e -> {
-//            if (!e.getValueIsAdjusting()) {
-//                UUID currentProcesoId = procesoPanel.getSelectedProcesoId();
-//                if (currentProcesoId != null && !currentProcesoId.equals(lastSelectedProcesoId)) {
-//                    lastSelectedProcesoId = currentProcesoId;
-//                    actualizarComboBoxActividades();
-//                }
-//            }
-//        });
     }
 
    private void actualizarComboBoxActividades() {

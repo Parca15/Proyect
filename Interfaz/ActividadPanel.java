@@ -1,12 +1,15 @@
 package Proyecto.Interfaz;
 
 
+import Proyecto.EstructurasDatos.ListaEnlazada;
 import Proyecto.Funcionalidades.GestionActividades;
+import Proyecto.ModelosBase.Actividad;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.TitledBorder;
 import java.awt.*;
+import java.util.List;
 import java.util.UUID;
 
 public class ActividadPanel extends JPanel {
@@ -217,6 +220,7 @@ public class ActividadPanel extends JPanel {
     }
 
 
+
     private void mostrarDialogoIntercambio() {
         UUID procesoId = procesoPanel.getSelectedProcesoId();
         if (procesoId == null) {
@@ -227,14 +231,25 @@ public class ActividadPanel extends JPanel {
             return;
         }
 
-        JTextField actividad1Field = new JTextField(20);
-        JTextField actividad2Field = new JTextField(20);
+        // Obtener lista de actividades del proceso seleccionado
+       List<String> actividades = gestionActividades.obtenerNombresActividades(procesoId);
+        if (actividades.isEmpty()) {
+            JOptionPane.showMessageDialog(this,
+                    "No hay actividades disponibles para el proceso seleccionado",
+                    "Error",
+                    JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        // Crear y poblar los JComboBox con las actividades
+        JComboBox<String> actividad1ComboBox = new JComboBox<>(actividades.toArray(new String[0]));
+        JComboBox<String> actividad2ComboBox = new JComboBox<>(actividades.toArray(new String[0]));
 
         JPanel panel = new JPanel(new GridLayout(4, 1));
         panel.add(new JLabel("Primera actividad:"));
-        panel.add(actividad1Field);
+        panel.add(actividad1ComboBox);
         panel.add(new JLabel("Segunda actividad:"));
-        panel.add(actividad2Field);
+        panel.add(actividad2ComboBox);
 
         int result = JOptionPane.showConfirmDialog(this, panel,
                 "Intercambiar Actividades",
@@ -242,10 +257,10 @@ public class ActividadPanel extends JPanel {
                 JOptionPane.PLAIN_MESSAGE);
 
         if (result == JOptionPane.OK_OPTION) {
-            String actividad1 = actividad1Field.getText().trim();
-            String actividad2 = actividad2Field.getText().trim();
+            String actividad1 = (String) actividad1ComboBox.getSelectedItem();
+            String actividad2 = (String) actividad2ComboBox.getSelectedItem();
 
-            if (!actividad1.isEmpty() && !actividad2.isEmpty()) {
+            if (actividad1 != null && actividad2 != null && !actividad1.isEmpty() && !actividad2.isEmpty()) {
                 gestionActividades.intercambiarActividades(procesoId, actividad1, actividad2);
                 JOptionPane.showMessageDialog(this,
                         "Actividades intercambiadas exitosamente",
@@ -254,6 +269,7 @@ public class ActividadPanel extends JPanel {
             }
         }
     }
+
 
     private void limpiarCampos() {
         nombreField.setText("");
