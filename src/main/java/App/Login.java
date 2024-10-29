@@ -11,29 +11,28 @@ public class Login {
     }
 
     public static String verifyUser(String username, String password) {
-        if (isUserInFile(username, password, "ModelosBase/Login_Archivo/Admin.txt")) {
+        System.out.println("Verificando usuario: " + username);
+
+        if (isUserInFile(username, password, "Login_Archivo/Admin")) {
+            System.out.println("Usuario verificado como administrador.");
             return "admin";
-        } else if (isUserInFile(username, password, "ModelosBase/Login_Archivo/Usuarios.txt")) {
+        } else if (isUserInFile(username, password, "Login_Archivo/Usuarios")) {
+            System.out.println("Usuario verificado como usuario regular.");
             return "user";
         }
+
+        System.out.println("Usuario no encontrado.");
         return null;
     }
 
-    private static boolean isUserInFile(String username, String password, String filePath) {
-        try (InputStream is = Login.class.getClassLoader().getResourceAsStream(filePath);
-             BufferedReader reader = new BufferedReader(new InputStreamReader(is))) {
-
+    private static boolean isUserInFile(String username, String password, String resourcePath) {
+        try (InputStream inputStream = Login.class.getClassLoader().getResourceAsStream(resourcePath);
+             BufferedReader br = new BufferedReader(new InputStreamReader(inputStream))) {
             String line;
-            while ((line = reader.readLine()) != null) {
-                String[] userData = line.split("@@");
-
-                if (userData.length >= 4) {
-                    String storedUsername = userData[2];
-                    String storedPassword = userData[3];
-
-                    if (storedUsername.equals(username) && storedPassword.equals(password)) {
-                        return true;
-                    }
+            while ((line = br.readLine()) != null) {
+                String[] credentials = line.split("@@");
+                if (credentials[2].trim().equals(username) && credentials[3].trim().equals(password)) {
+                    return true;
                 }
             }
         } catch (IOException e) {

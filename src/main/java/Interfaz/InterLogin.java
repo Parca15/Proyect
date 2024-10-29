@@ -1,15 +1,12 @@
 package Interfaz;
 
-import Interfaz.MainApplication;
 import App.Login;
 
 import javax.swing.*;
 import javax.swing.text.*;
 import java.awt.*;
 import java.awt.event.*;
-import java.io.BufferedReader;
-import java.io.FileReader;
-import java.io.IOException;
+import java.io.*;
 import javax.swing.border.*;
 
 public class InterLogin extends JFrame {
@@ -622,7 +619,9 @@ public class InterLogin extends JFrame {
     }
 
     private boolean validateAdminCredentials(String document, String password) {
-        try (BufferedReader br = new BufferedReader(new FileReader("ModelosBase/Login_Archivo/Admin.txt"))) {
+        try (InputStream inputStream = getClass().getClassLoader().getResourceAsStream("Login_Archivo/Admin");
+             BufferedReader br = new BufferedReader(new InputStreamReader(inputStream))) {
+
             String line;
             if ((line = br.readLine()) != null) {
                 String[] credentials = line.split("@@");

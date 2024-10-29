@@ -240,7 +240,7 @@ public class InterRegister extends JFrame {
         }
 
         try {
-            File file = new File("ModelosBase/Login_Archivo/Usuarios.txt");
+            File file = new File("src/main/resources/Login_Archivo/Usuarios");
             file.getParentFile().mkdirs(); // Crear directorio si no existe
 
             // Verificar si el documento ya existe
