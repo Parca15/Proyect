@@ -1,6 +1,5 @@
 package Proyecto.Funcionalidades;
 
-import Proyecto.EstructurasDatos.ListaEnlazada;
 import Proyecto.EstructurasDatos.Nodo;
 import Proyecto.ModelosBase.Actividad;
 import Proyecto.ModelosBase.Proceso;
@@ -109,7 +108,7 @@ public class GestionActividades {
         return null;
     }
 
-    public void intercambiarActividades(UUID id,String nombre1, String nombre2) {
+    public void intercambiarActividades(UUID id, String nombre1, String nombre2, boolean selected) {
         if (nombre1.equals(nombre2)) {
             System.out.println("Error: Los nombres son iguales. No se puede realizar el intercambio.");
             return;
