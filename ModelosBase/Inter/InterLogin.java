@@ -1,6 +1,6 @@
 package Proyecto.ModelosBase.Inter;
 
-import Proyecto.Funcionalidades.ProcessManagementGUI;
+import Proyecto.Interfaz.MainApplication;
 import Proyecto.ModelosBase.Login;
 
 import javax.swing.*;
@@ -437,7 +437,7 @@ public class InterLogin extends JFrame {
 
         Login login = new Login();
         if (login.verifyUser(documento, password) != null) {
-            ProcessManagementGUI mainGUI = new ProcessManagementGUI();
+            MainApplication mainGUI = new MainApplication();
             mainGUI.setVisible(true);
             this.dispose();
         } else {
