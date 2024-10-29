@@ -28,7 +28,7 @@ public class ActividadPanel extends JPanel {
         Color colorFondoPrincipal = new Color(147, 112, 219);    // Morado principal
         Color colorSecundario = new Color(138, 43, 226);        // Morado más claro
         Color colorAccent = new Color(123, 104, 238);          // Morado claro/lavanda
-        Color colorTexto = Color.WHITE;                        // Texto blanco
+        Color colorTexto = Color.black;                        // Texto blanco
 
         // Panel para datos de la actividad
         JPanel datosPanel = new JPanel(new GridBagLayout());
@@ -140,7 +140,7 @@ public class ActividadPanel extends JPanel {
 
     private void styleComboBox(JComboBox<?> comboBox, Color borderColor) {
         comboBox.setBorder(BorderFactory.createLineBorder(borderColor));
-        comboBox.setForeground(Color.WHITE);
+        comboBox.setForeground(Color.black);
         comboBox.setBackground(new Color(111, 63, 182));
     }
 
