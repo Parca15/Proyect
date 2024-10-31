@@ -60,12 +60,12 @@ Funcionalidades\GestionProcesos.class
 Interfaz\InterLogin$15.class
 Funcionalidades\GestionConsultas$TiempoActividad.class
 Funcionalidades\GestionConsultas$TipoBusqueda.class
+ModelosBase\Notificaciones\MonitorNotificaciones.class
 Interfaz\InterRegister$RoundedBorder.class
 Interfaz\InterRegister$5.class
 Interfaz\VentanaNotificacion.class
 Interfaz\InterLogin$14.class
 ModelosBase\Actividad.class
-ModelosBase\Notificaciones\MonitorProcesos.class
 Interfaz\ProcesoPanel$RoundedBorder.class
 Interfaz\ProcesoPanel$CustomListCellRenderer.class
 Interfaz\InterRegister.class
