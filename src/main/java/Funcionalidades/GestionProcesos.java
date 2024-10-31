@@ -1,7 +1,8 @@
 package Funcionalidades;
 
+import Interfaz.GestorNotificacionesSwing;
 import ModelosBase.Actividad;
-import ModelosBase.Notificaciones.MonitorProcesos;
+import ModelosBase.Notificaciones.MonitorNotificaciones;
 import ModelosBase.Proceso;
 
 import java.util.Map;
@@ -9,16 +10,21 @@ import java.util.UUID;
 
 public class GestionProcesos {
     private Map<UUID, Proceso> procesos;
-    private final MonitorProcesos monitorProcesos;
+    private final MonitorNotificaciones monitorNotificaciones;
+    private final GestionNotificaciones gestionNotificaciones;
+    private final GestorNotificacionesSwing gestorNotificacionesUI;
 
     public GestionProcesos(Map<UUID, Proceso> procesos) {
         this.procesos = procesos;
-        this.monitorProcesos = MonitorProcesos.getInstance();
+        this.monitorNotificaciones = MonitorNotificaciones.getInstance();
+        this.gestionNotificaciones = GestionNotificaciones.getInstance();
+        this.gestorNotificacionesUI = GestorNotificacionesSwing.getInstance();
     }
 
     public Proceso crearProceso(String nombre) {
         Proceso proceso = new Proceso(nombre);
         procesos.put(proceso.getId(), proceso);
+        gestionNotificaciones.notificarProcesoIniciado(proceso);
         return proceso;
     }
 

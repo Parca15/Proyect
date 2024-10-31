@@ -40,51 +40,50 @@ public class GestionNotificaciones {
 
             Tarea tarea = tareas.obtenerFrente();
             while (tarea != null) {
-                long horasTranscurridas = ChronoUnit.HOURS.between(tarea.getFechaCreacion(), ahora);
+                long minutosTranscurridos = ChronoUnit.MINUTES.between(tarea.getFechaCreacion(), ahora);
 
-                if (tarea.isObligatoria() && horasTranscurridas >= 24) {
+                if (tarea.isObligatoria() && minutosTranscurridos > tarea.getDuracion()) {
                     crearNotificacion(
                             "Tarea Vencida",
-                            "La tarea '" + tarea.getDescripcion() + "' en la actividad '" +
-                                    actividad.getNombre() + "' está vencida",
+                            "La tarea '" + tarea.getDescripcion() + "' en la actividad '" + actividad.getNombre() + "' está vencida",
                             TipoNotificacion.TAREA_VENCIDA,
                             PrioridadNotificacion.ALTA,
                             proceso.getId().toString()
                     );
-                } else if (horasTranscurridas >= 20 && tarea.isObligatoria()) {
+                } else if (tarea.isObligatoria() && minutosTranscurridos >= tarea.getDuracion() - 30) {
                     crearNotificacion(
                             "Tarea Próxima a Vencer",
-                            "La tarea '" + tarea.getDescripcion() + "' vencerá en " +
-                                    (24 - horasTranscurridas) + " horas",
+                            "La tarea '" + tarea.getDescripcion()
+                                    + "' en la actividad '" + actividad.getNombre()
+                                    + "' vencerá en 30 minutos",
                             TipoNotificacion.TAREA_PROXIMA,
                             PrioridadNotificacion.MEDIA,
                             proceso.getId().toString()
                     );
                 }
-
                 tarea = tareas.desencolar();
             }
         }
     }
 
-    public void notificarActividadIniciada(Actividad actividad, Proceso proceso) {
+    public void notificarActividadCreada(Actividad actividad, Proceso proceso) {
         crearNotificacion(
-                "Actividad Iniciada",
-                "La actividad '" + actividad.getNombre() + "' ha sido iniciada en el proceso '" +
+                "Actividad Creada",
+                "La actividad '" + actividad.getNombre() + "' ha sido creada en el proceso '" +
                         proceso.getNombre() + "'",
-                TipoNotificacion.ACTIVIDAD_INICIADA,
+                TipoNotificacion.ACTIVIDAD_CREADA,
                 actividad.isObligatoria() ? PrioridadNotificacion.ALTA : PrioridadNotificacion.MEDIA,
                 proceso.getId().toString()
         );
     }
 
-    public void notificarActividadCompletada(Actividad actividad, Proceso proceso) {
+    public void notificarTareaCreada(Tarea tarea, Actividad actividad, Proceso proceso) {
         crearNotificacion(
-                "Actividad Completada",
-                "La actividad '" + actividad.getNombre() + "' ha sido completada en el proceso '" +
-                        proceso.getNombre() + "'",
-                TipoNotificacion.ACTIVIDAD_COMPLETADA,
-                PrioridadNotificacion.BAJA,
+                "Nueva Tarea Creada",
+                "Se ha creado la tarea '" + tarea.getDescripcion() + "' en la actividad '" +
+                        actividad.getNombre() + "' del proceso '" + proceso.getNombre() + "'",
+                TipoNotificacion.TAREA_CREADA,
+                tarea.isObligatoria() ? PrioridadNotificacion.ALTA : PrioridadNotificacion.MEDIA,
                 proceso.getId().toString()
         );
     }
@@ -111,9 +110,9 @@ public class GestionNotificaciones {
     public void notificarProcesoIniciado(Proceso proceso) {
         crearNotificacion(
                 "Nuevo Proceso",
-                "Se ha iniciado el proceso: " + proceso.getNombre(),
-                TipoNotificacion.PROCESO_INICIADO,
-                PrioridadNotificacion.MEDIA,
+                "Se ha creado el proceso: " + proceso.getNombre(),
+                TipoNotificacion.PROCESO_CREADO,
+                PrioridadNotificacion.BAJA,
                 proceso.getId().toString()
         );
     }
@@ -130,11 +129,11 @@ public class GestionNotificaciones {
         );
     }
 
-    public void notificarTareaProximaVencer(Tarea tarea, Actividad actividad, Proceso proceso, long horasRestantes) {
+    public void notificarTareaProximaVencer(Tarea tarea, Actividad actividad, Proceso proceso, long minutosRestantes) {
         crearNotificacion(
                 "Tarea Próxima a Vencer",
                 "La tarea '" + tarea.getDescripcion() + "' vencerá en " +
-                        horasRestantes + " horas",
+                        minutosRestantes + " minutos" + " en la actividad '" + actividad.getNombre() + "'",
                 TipoNotificacion.TAREA_PROXIMA,
                 PrioridadNotificacion.MEDIA,
                 proceso.getId().toString()

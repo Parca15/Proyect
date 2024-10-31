@@ -92,18 +92,4 @@ public class MainApplication extends JFrame {
             e.printStackTrace();
         }
     }
-
-    public static void main(String[] args) {
-        try {
-            // Establecer el look and feel del sistema
-            UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        SwingUtilities.invokeLater(() -> {
-            MainApplication app = new MainApplication();
-            app.setVisible(true);
-        });
-    }
 }

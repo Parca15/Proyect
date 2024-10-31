@@ -3,88 +3,140 @@ package Funcionalidades;
 import EstructurasDatos.Cola;
 import EstructurasDatos.Nodo;
 import ModelosBase.Actividad;
+import ModelosBase.Notificaciones.MonitorNotificaciones;
 import ModelosBase.Proceso;
 import ModelosBase.Tarea;
+import ModelosBase.Notificaciones.PrioridadNotificacion;
+import ModelosBase.Notificaciones.TipoNotificacion;
+import Interfaz.GestorNotificacionesSwing;
 import java.util.UUID;
 
 public class GestionTareas {
     private GestionProcesos gestionProcesos;
+    private final MonitorNotificaciones monitorNotificaciones;
+    private final GestionNotificaciones gestionNotificaciones;
+    private final GestorNotificacionesSwing gestorNotificacionesUI;
 
     public GestionTareas(GestionProcesos gestionProcesos) {
         this.gestionProcesos = gestionProcesos;
+        this.monitorNotificaciones = MonitorNotificaciones.getInstance();
+        this.gestionNotificaciones = GestionNotificaciones.getInstance();
+        this.gestorNotificacionesUI = GestorNotificacionesSwing.getInstance();
     }
 
     public void agregarTarea(UUID procesoId, String nombreActividad, String descripcion, int duracion, boolean obligatoria) {
-        Proceso proceso = gestionProcesos.buscarProceso(procesoId);
-        if (proceso == null) {
-            throw new IllegalStateException("Proceso no encontrado.");
-        }
-
-        for (int i = 0; i < proceso.getActividades().getTamanio(); i++) {
-            Actividad actividad = proceso.getActividades().getElementoEnPosicion(i);
-            if (actividad.getNombre().equals(nombreActividad)) {
-                Cola<Tarea> tareas = actividad.getTareas();
-                Tarea nuevaTarea = new Tarea(descripcion, duracion, obligatoria);
-
-                // Validar si es posible agregar la tarea al final
-                if (!validarInsercionTarea(tareas, nuevaTarea, -1)) {
-                    throw new IllegalStateException("No se pueden tener dos tareas opcionales consecutivas.");
-                }
-
-                actividad.agregarTarea(nuevaTarea);
-                return;
+        try {
+            Proceso proceso = gestionProcesos.buscarProceso(procesoId);
+            if (proceso == null) {
+                throw new IllegalStateException("Proceso no encontrado.");
             }
+
+            // Registrar el proceso para monitoreo
+            monitorNotificaciones.registrarProceso(proceso);
+
+            for (int i = 0; i < proceso.getActividades().getTamanio(); i++) {
+                Actividad actividad = proceso.getActividades().getElementoEnPosicion(i);
+                if (actividad.getNombre().equals(nombreActividad)) {
+                    Cola<Tarea> tareas = actividad.getTareas();
+                    Tarea nuevaTarea = new Tarea(descripcion, duracion, obligatoria);
+
+                    if (!validarInsercionTarea(tareas, nuevaTarea, -1)) {
+                        throw new IllegalStateException("No se pueden tener dos tareas opcionales consecutivas.");
+                    }
+
+                    actividad.agregarTarea(nuevaTarea);
+                    gestionNotificaciones.notificarTareaCreada(nuevaTarea, actividad, proceso);
+                    return;
+                }
+            }
+            throw new IllegalStateException("Actividad no encontrada.");
+        } catch (Exception e) {
+            gestionNotificaciones.crearNotificacion(
+                    "Error en Creación de Tarea",
+                    e.getMessage(),
+                    TipoNotificacion.ERROR,
+                    PrioridadNotificacion.ALTA,
+                    procesoId.toString()
+            );
+            throw e;
         }
-        throw new IllegalStateException("Actividad no encontrada.");
     }
 
-    public void insertarTareaEnPosicion(UUID procesoId, String nombreActividad, int posicion, String descripcion, int duracion, boolean obligatoria) {
-        if (posicion < 0) {
-            throw new IllegalStateException("La posición no puede ser negativa.");
-        }
-
-        Proceso proceso = gestionProcesos.buscarProceso(procesoId);
-        if (proceso == null) {
-            throw new IllegalStateException("Proceso no encontrado.");
-        }
-
-        for (int i = 0; i < proceso.getActividades().getTamanio(); i++) {
-            Actividad actividad = proceso.getActividades().getElementoEnPosicion(i);
-            if (actividad.getNombre().equals(nombreActividad)) {
-                Cola<Tarea> tareas = actividad.getTareas();
-                Tarea nuevaTarea = new Tarea(descripcion, duracion, obligatoria);
-
-                // Validar si es posible insertar la tarea en la posición especificada
-                if (!validarInsercionTarea(tareas, nuevaTarea, posicion)) {
-                    throw new IllegalStateException("No se pueden tener dos tareas opcionales consecutivas.");
-                }
-
-                // Si la cola está vacía o queremos insertar al inicio
-                if (tareas.estaVacia() || posicion == 0) {
-                    tareas.insertarAlInicio(nuevaTarea);
-                    return;
-                }
-
-                // Obtener el tamaño actual de la cola
-                int tamano = obtenerTamano(tareas);
-
-                // Si queremos insertar al final
-                if (posicion >= tamano) {
-                    tareas.insertarAlFinal(nuevaTarea);
-                    return;
-                }
-
-                // Insertar en una posición específica
-                Nodo<Tarea> actual = tareas.getNodoPrimero();
-                for (int j = 0; j < posicion - 1; j++) {
-                    actual = actual.getSiguienteNodo();
-                }
-
-                tareas.insertarDespuesDe(actual.getValorNodo(), nuevaTarea);
-                return;
+    public void insertarTareaEnPosicion(UUID procesoId, String nombreActividad, int posicion,
+                                        String descripcion, int duracion, boolean obligatoria) {
+        try {
+            if (posicion < 0) {
+                throw new IllegalStateException("La posición no puede ser negativa.");
             }
+
+            Proceso proceso = gestionProcesos.buscarProceso(procesoId);
+            if (proceso == null) {
+                throw new IllegalStateException("Proceso no encontrado.");
+            }
+
+            monitorNotificaciones.registrarProceso(proceso);
+
+            for (int i = 0; i < proceso.getActividades().getTamanio(); i++) {
+                Actividad actividad = proceso.getActividades().getElementoEnPosicion(i);
+                if (actividad.getNombre().equals(nombreActividad)) {
+                    Cola<Tarea> tareas = actividad.getTareas();
+                    Tarea nuevaTarea = new Tarea(descripcion, duracion, obligatoria);
+
+                    if (!validarInsercionTarea(tareas, nuevaTarea, posicion)) {
+                        throw new IllegalStateException("No se pueden tener dos tareas opcionales consecutivas.");
+                    }
+
+                    insertarTareaEnPosicionEspecifica(tareas, nuevaTarea, posicion);
+                    notificarCreacionTarea(nuevaTarea, actividad, proceso);
+                    return;
+                }
+            }
+            throw new IllegalStateException("Actividad no encontrada.");
+        } catch (Exception e) {
+            gestionNotificaciones.crearNotificacion(
+                    "Error en Inserción de Tarea",
+                    e.getMessage(),
+                    TipoNotificacion.ERROR,
+                    PrioridadNotificacion.ALTA,
+                    procesoId.toString()
+            );
+            throw e;
         }
-        throw new IllegalStateException("Actividad no encontrada.");
+    }
+
+    private void notificarCreacionTarea(Tarea tarea, Actividad actividad, Proceso proceso) {
+        String mensaje = String.format("Nueva tarea '%s' creada en la actividad '%s' del proceso '%s'",
+                tarea.getDescripcion(), actividad.getNombre(), proceso.getNombre());
+
+        PrioridadNotificacion prioridad = tarea.isObligatoria() ?
+                PrioridadNotificacion.ALTA : PrioridadNotificacion.MEDIA;
+
+        gestionNotificaciones.crearNotificacion(
+                "Nueva Tarea Creada",
+                mensaje,
+                TipoNotificacion.TAREA_CREADA,
+                prioridad,
+                proceso.getId().toString()
+        );
+    }
+
+    private void insertarTareaEnPosicionEspecifica(Cola<Tarea> tareas, Tarea nuevaTarea, int posicion) {
+        if (tareas.estaVacia() || posicion == 0) {
+            tareas.insertarAlInicio(nuevaTarea);
+            return;
+        }
+
+        int tamano = obtenerTamano(tareas);
+        if (posicion >= tamano) {
+            tareas.insertarAlFinal(nuevaTarea);
+            return;
+        }
+
+        Nodo<Tarea> actual = tareas.getNodoPrimero();
+        for (int j = 0; j < posicion - 1; j++) {
+            actual = actual.getSiguienteNodo();
+        }
+        tareas.insertarDespuesDe(actual.getValorNodo(), nuevaTarea);
     }
 
     private boolean validarInsercionTarea(Cola<Tarea> tareas, Tarea nuevaTarea, int posicion) {
@@ -92,22 +144,17 @@ public class GestionTareas {
             return true;
         }
 
-        // Convertir la cola a un arreglo para facilitar la validación
         Tarea[] tareasArray = convertirColaAArreglo(tareas);
 
-        // Si la posición es -1, significa que se agregará al final
         if (posicion == -1) {
             posicion = tareasArray.length;
         }
 
-        // Validar si la nueva tarea es opcional
         if (!nuevaTarea.isObligatoria()) {
-            // Verificar tarea anterior si no es la primera posición
             if (posicion > 0 && !tareasArray[posicion - 1].isObligatoria()) {
                 return false;
             }
 
-            // Verificar tarea siguiente si no es la última posición
             if (posicion < tareasArray.length && !tareasArray[posicion].isObligatoria()) {
                 return false;
             }

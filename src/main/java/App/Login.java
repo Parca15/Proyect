@@ -11,17 +11,11 @@ public class Login {
     }
 
     public static String verifyUser(String username, String password) {
-        System.out.println("Verificando usuario: " + username);
-
         if (isUserInFile(username, password, "Login_Archivo/Admin")) {
-            System.out.println("Usuario verificado como administrador.");
             return "admin";
         } else if (isUserInFile(username, password, "Login_Archivo/Usuarios")) {
-            System.out.println("Usuario verificado como usuario regular.");
             return "user";
         }
-
-        System.out.println("Usuario no encontrado.");
         return null;
     }
 

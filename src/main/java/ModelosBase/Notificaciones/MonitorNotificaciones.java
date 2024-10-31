@@ -14,21 +14,21 @@ import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
 
-public class MonitorProcesos {
-    private static MonitorProcesos instancia;
+public class MonitorNotificaciones {
+    private static MonitorNotificaciones instancia;
     private final ScheduledExecutorService scheduler;
     private final List<Proceso> procesosActivos;
 
-    private MonitorProcesos() {
+    private MonitorNotificaciones() {
         this.scheduler = Executors.newScheduledThreadPool(1);
         this.procesosActivos = new ArrayList<>();
         GestionNotificaciones gestionNotificaciones = GestionNotificaciones.getInstance();
         iniciarMonitoreo();
     }
 
-    public static MonitorProcesos getInstance() {
+    public static MonitorNotificaciones getInstance() {
         if (instancia == null) {
-            instancia = new MonitorProcesos();
+            instancia = new MonitorNotificaciones();
         }
         return instancia;
     }
@@ -62,15 +62,15 @@ public class MonitorProcesos {
             Tarea tarea = actividad.getTareas().desencolar();
             tareasCopia.encolar(tarea);
 
-            long horasTranscurridas = ChronoUnit.HOURS.between(tarea.getFechaCreacion(), ahora);
-            long horasRestantes = tarea.getDuracion() - horasTranscurridas;
+            long minutosTranscurridos = ChronoUnit.MINUTES.between(tarea.getFechaCreacion(), ahora);
+            long minutosRestantes = tarea.getDuracion() - minutosTranscurridos;
 
-            if (horasRestantes <= 0 && tarea.isObligatoria()) {
+            if (minutosRestantes <= 0 && tarea.isObligatoria()) {
                 GestionNotificaciones.getInstance().notificarTareaVencida(tarea, actividad, proceso);
                 hayTareasVencidas = true;
             }
-            else if (horasRestantes > 0 && horasRestantes <= 2 && tarea.isObligatoria()) {
-                GestionNotificaciones.getInstance().notificarTareaProximaVencer(tarea, actividad, proceso, horasRestantes);
+            else if (minutosRestantes > 0 && minutosRestantes <= 30 && tarea.isObligatoria()) {
+                GestionNotificaciones.getInstance().notificarTareaProximaVencer(tarea, actividad, proceso, minutosRestantes);
             }
         }
 
