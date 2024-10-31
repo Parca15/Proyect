@@ -1,410 +1,482 @@
-package Interfaz;
+    package Interfaz;
 
-import javax.swing.*;
-import javax.swing.border.EmptyBorder;
-import java.awt.*;
-import java.util.UUID;
+    import javax.swing.*;
+    import javax.swing.border.EmptyBorder;
+    import java.awt.*;
+    import java.awt.event.MouseAdapter;
+    import java.awt.event.MouseEvent;
 
-import Funcionalidades.GestionConsultas;
-import Funcionalidades.GestionTareas;
-import ModelosBase.Actividad;
-import ModelosBase.Proceso;
-import EstructurasDatos.ListaEnlazada;
-import EstructurasDatos.Nodo;
+    import Controller.TareaController;
+    import Funcionalidades.GestionTareas;
+    import Funcionalidades.GestionConsultas;
 
-public class TareaPanel extends JPanel {
-    private final GestionTareas gestionTareas;
-    private final GestionConsultas gestionConsultas;
-    private final ProcesoPanel procesoPanel;
-    private final JTextField descripcionField;
-    private final JSpinner duracionSpinner;
-    private final JCheckBox obligatoriaCheck;
-    private final JComboBox<String> actividadCombo;
-    private final JComboBox<String> tipoInsercionCombo;
-    private final JSpinner posicionSpinner;
-    private final JPanel busquedaPanel;
-    private final JComboBox<String> tipoBusquedaCombo;
-    private final JComboBox<String> actividadBusquedaCombo;
-    private final JTextArea resultadosBusqueda;
-    private UUID lastSelectedProcesoId; // Nueva variable para tracking
+    public class TareaPanel extends JPanel {
+        private final TareaController controller;
+        private final JTextField descripcionField;
+        private final JSpinner duracionSpinner;
+        private final JCheckBox obligatoriaCheck;
+        private final JComboBox<String> actividadCombo;
+        private final JComboBox<String> tipoInsercionCombo;
+        private final JSpinner posicionSpinner;
+        private final JComboBox<String> tipoBusquedaCombo;
+        private final JComboBox<String> actividadBusquedaCombo;
+        private final JTextArea resultadosBusqueda;
+        private final JButton crearButton;
+        private final JButton buscarButton;
+        private final JButton calcularButton;
+        private final JLabel resultadoDuracion;
 
-    public TareaPanel(GestionTareas gestionTareas, GestionConsultas gestionConsultas, ProcesoPanel procesoPanel) {
-        this.gestionTareas = gestionTareas;
-        this.gestionConsultas = gestionConsultas;
-        this.procesoPanel = procesoPanel;
-        this.setLayout(new BorderLayout(10, 10));
-        this.setBorder(new EmptyBorder(10, 10, 10, 10));
+        // Colores consistentes con ActividadPanel
+        private Color primaryColor = new Color(147, 112, 219);
+        private Color secondaryColor = new Color(138, 43, 226);
+        private Color hoverColor = new Color(123, 104, 238);
 
-        // Definición de los nuevos colores siguiendo el tema morado
-        Color colorPrincipal = new Color(111, 63, 182);      // Morado principal
-        Color colorSecundario = new Color(138, 43, 226);        // Morado más claro
-        Color colorAccent = new Color(123, 104, 238);          // Morado claro/lavanda
-        Color colorFondo = new Color(147, 112, 219, 100);    // Morado claro semi transparente
-        Color colorTexto = Color.black;                      // Texto blanco
+        public TareaPanel(GestionTareas gestionTareas, GestionConsultas gestionConsultas, ProcesoPanel procesoPanel) {
+            controller = new TareaController(gestionTareas, gestionConsultas, procesoPanel);
+            controller.setView(this);
 
-        JTabbedPane tabbedPane = new JTabbedPane();
-        tabbedPane.setBackground(colorSecundario);
-        tabbedPane.setForeground(colorTexto);
+            setLayout(new BorderLayout());
+            setPreferredSize(new Dimension(300, 500));
 
-        // === Panel de Creación de Tareas ===
-        JPanel creacionPanel = new JPanel(new GridBagLayout());
-        creacionPanel.setBackground(new Color(111, 63, 182, 100));  // Morado semi transparente
-        creacionPanel.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createTitledBorder(BorderFactory.createLineBorder(colorAccent, 2),
-                        "Crear Nueva Tarea"),
-                BorderFactory.createEmptyBorder(5, 5, 5, 5)
-        ));
+            // Inicialización de componentes
+            descripcionField = createStyledTextField();
+            duracionSpinner = createStyledSpinner(new SpinnerNumberModel(30, 1, 300, 1));
+            obligatoriaCheck = createStyledCheckBox("Obligatoria");
+            actividadCombo = createStyledComboBox(new String[]{});
+            tipoInsercionCombo = createStyledComboBox(new String[]{"Al final", "En posición"});
+            posicionSpinner = createStyledSpinner(new SpinnerNumberModel(1, 1, 100, 1));
+            tipoBusquedaCombo = createStyledComboBox(new String[]{"Por proceso", "Actividad reciente", "Por actividad"});
+            actividadBusquedaCombo = createStyledComboBox(new String[]{});
+            resultadosBusqueda = createStyledTextArea();
+            crearButton = createStyledButton("Crear Tarea", 12);
+            buscarButton = createStyledButton("Buscar", 12);
+            calcularButton = createStyledButton("Calcular", 12);
+            resultadoDuracion = createStyledLabel("");
 
-        GridBagConstraints gbc = new GridBagConstraints();
-        gbc.insets = new Insets(5, 5, 5, 5);
-        gbc.fill = GridBagConstraints.HORIZONTAL;
+            // Panel principal con degradado
+            JPanel mainPanel = new JPanel() {
+                @Override
+                protected void paintComponent(Graphics g) {
+                    super.paintComponent(g);
+                    Graphics2D g2d = (Graphics2D) g;
+                    g2d.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
+                    g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
-        descripcionField = new JTextField(20);
-        descripcionField.setBorder(BorderFactory.createLineBorder(colorAccent));
-        descripcionField.setBackground(new Color(255, 255, 255, 220));
+                    int w = getWidth();
+                    int h = getHeight();
 
-        duracionSpinner = new JSpinner(new SpinnerNumberModel(30, 1, 999, 1));
-        duracionSpinner.getEditor().getComponent(0).setBackground(new Color(255, 255, 255, 220));
+                    float[] dist = {0.0f, 0.5f, 1.0f};
+                    Color[] colors = {primaryColor, new Color(142, 68, 223), secondaryColor};
+                    LinearGradientPaint gp = new LinearGradientPaint(0, 0, 0, h, dist, colors);
+                    g2d.setPaint(gp);
+                    g2d.fillRect(0, 0, w, h);
 
-        obligatoriaCheck = new JCheckBox("Obligatoria");
-        obligatoriaCheck.setForeground(colorTexto);
-        obligatoriaCheck.setBackground(new Color(0, 0, 0, 0));
+                    // Efecto de puntos decorativos
+                    g2d.setColor(new Color(255, 255, 255, 20));
+                    for (int i = 0; i < w; i += 20) {
+                        for (int j = 0; j < h; j += 20) {
+                            g2d.fillOval(i, j, 2, 2);
+                        }
+                    }
+                }
+            };
+            mainPanel.setLayout(new BoxLayout(mainPanel, BoxLayout.Y_AXIS));
 
-        actividadCombo = new JComboBox<>();
-        actividadCombo.setBackground(new Color(255, 255, 255, 220));
-        actividadCombo.setBorder(BorderFactory.createLineBorder(colorAccent));
+            // Crear pestañas con el nuevo estilo
+            JTabbedPane tabbedPane = createStyledTabbedPane();
 
-        String[] tiposInsercion = {"Al final", "En posición específica"};
-        tipoInsercionCombo = new JComboBox<>(tiposInsercion);
-        tipoInsercionCombo.setBackground(new Color(255, 255, 255, 220));
+            // Panel de creación
+            JPanel creacionPanel = new JPanel();
+            creacionPanel.setLayout(new BoxLayout(creacionPanel, BoxLayout.Y_AXIS));
+            creacionPanel.setOpaque(false);
+            creacionPanel.setBorder(BorderFactory.createEmptyBorder(20, 25, 20, 25));;
 
-        posicionSpinner = new JSpinner(new SpinnerNumberModel(1, 1, 999, 1));
-        posicionSpinner.setEnabled(false);
-        posicionSpinner.getEditor().getComponent(0).setBackground(new Color(255, 255, 255, 220));
+            // Agregar componentes al panel de creación
+            addComponentToPanel(creacionPanel, "Descripción", descripcionField);
+            addComponentToPanel(creacionPanel, "Duración (min)", duracionSpinner);
+            addComponentToPanel(creacionPanel, "Actividad", actividadCombo);
+            addComponentToPanel(creacionPanel, "Tipo de inserción", tipoInsercionCombo);
+            addComponentToPanel(creacionPanel, "Posición", posicionSpinner);
+            creacionPanel.add(Box.createVerticalStrut(10));
+            creacionPanel.add(obligatoriaCheck);
+            creacionPanel.add(Box.createVerticalStrut(20));
+            creacionPanel.add(crearButton);
 
-        // Agregar componentes al panel de creación
-        gbc.gridx = 0; gbc.gridy = 0;
-        JLabel lblActividad = new JLabel("Actividad:");
-        lblActividad.setForeground(colorTexto);
-        creacionPanel.add(lblActividad, gbc);
-        gbc.gridx = 1;
-        creacionPanel.add(actividadCombo, gbc);
+            // Panel de búsqueda
+            JPanel busquedaPanel = new JPanel();
+            busquedaPanel.setLayout(new BoxLayout(busquedaPanel, BoxLayout.Y_AXIS));
+            busquedaPanel.setOpaque(false);
+            busquedaPanel.setBorder(BorderFactory.createEmptyBorder(20, 25, 20, 25));
 
-        gbc.gridx = 0; gbc.gridy = 1;
-        JLabel lblDescripcion = new JLabel("Descripción:");
-        lblDescripcion.setForeground(colorTexto);
-        creacionPanel.add(lblDescripcion, gbc);
-        gbc.gridx = 1;
-        creacionPanel.add(descripcionField, gbc);
+            addComponentToPanel(busquedaPanel, "Tipo de búsqueda", tipoBusquedaCombo);
+            addComponentToPanel(busquedaPanel, "Actividad", actividadBusquedaCombo);
+            busquedaPanel.add(Box.createVerticalStrut(10));
+            busquedaPanel.add(buscarButton);
+            busquedaPanel.add(Box.createVerticalStrut(10));
 
-        gbc.gridx = 0; gbc.gridy = 2;
-        JLabel lblDuracion = new JLabel("Duración (min):");
-        lblDuracion.setForeground(colorTexto);
-        creacionPanel.add(lblDuracion, gbc);
-        gbc.gridx = 1;
-        creacionPanel.add(duracionSpinner, gbc);
+            JScrollPane scrollPane = new JScrollPane(resultadosBusqueda);
+            scrollPane.setOpaque(false);
+            scrollPane.getViewport().setOpaque(false);
+            scrollPane.setBorder(new InterRegister.RoundedBorder(20));
+            busquedaPanel.add(scrollPane);
 
-        gbc.gridx = 0; gbc.gridy = 3;
-        gbc.gridwidth = 2;
-        creacionPanel.add(obligatoriaCheck, gbc);
+            // Panel de cálculo
+            JPanel calculoPanel = new JPanel();
+            calculoPanel.setLayout(new BoxLayout(calculoPanel, BoxLayout.Y_AXIS));
+            calculoPanel.setOpaque(false);
+            calculoPanel.setBorder(BorderFactory.createEmptyBorder(20, 25, 20, 25));
 
-        gbc.gridy = 4;
-        JLabel lblTipoInsercion = new JLabel("Tipo de inserción:");
-        lblTipoInsercion.setForeground(colorTexto);
-        creacionPanel.add(lblTipoInsercion, gbc);
-        gbc.gridy = 5;
-        creacionPanel.add(tipoInsercionCombo, gbc);
+            calculoPanel.add(calcularButton);
+            calculoPanel.add(Box.createVerticalStrut(20));
+            calculoPanel.add(resultadoDuracion);
 
-        gbc.gridy = 6;
-        JPanel posicionPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
-        posicionPanel.setBackground(new Color(0, 0, 0, 0));
-        JLabel lblPosicion = new JLabel("Posición:");
-        lblPosicion.setForeground(colorTexto);
-        posicionPanel.add(lblPosicion);
-        posicionPanel.add(posicionSpinner);
-        creacionPanel.add(posicionPanel, gbc);
+            // Agregar paneles a las pestañas
+            tabbedPane.addTab("Crear", creacionPanel);
+            tabbedPane.addTab("Buscar", busquedaPanel);
+            tabbedPane.addTab("Calcular", calculoPanel);
 
-        JButton crearButton = new JButton("Crear Tarea");
-        crearButton.setBackground(colorAccent);
-        crearButton.setForeground(colorTexto);
-        crearButton.setBorder(BorderFactory.createEmptyBorder(5, 15, 5, 15));
-        crearButton.setFocusPainted(false);
-        gbc.gridy = 7;
-        creacionPanel.add(crearButton, gbc);
+            mainPanel.add(tabbedPane);
+            add(mainPanel);
 
-        // === Panel de Búsqueda de Tareas ===
-        busquedaPanel = new JPanel(new GridBagLayout());
-        busquedaPanel.setBackground(new Color(111, 63, 182, 100));
-        busquedaPanel.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createTitledBorder(BorderFactory.createLineBorder(colorAccent, 2),
-                        "Buscar Tareas"),
-                BorderFactory.createEmptyBorder(5, 5, 5, 5)
-        ));
-
-        String[] tiposBusqueda = {
-                "Desde inicio del proceso",
-                "Desde actividad actual",
-                "Desde actividad específica"
-        };
-        tipoBusquedaCombo = new JComboBox<>(tiposBusqueda);
-        tipoBusquedaCombo.setBackground(new Color(255, 255, 255, 220));
-
-        actividadBusquedaCombo = new JComboBox<>();
-        actividadBusquedaCombo.setBackground(new Color(255, 255, 255, 220));
-        actividadBusquedaCombo.setEnabled(false);
-
-        resultadosBusqueda = new JTextArea(10, 30);
-        resultadosBusqueda.setBackground(new Color(255, 255, 255, 220));
-        resultadosBusqueda.setBorder(BorderFactory.createLineBorder(colorAccent));
-
-        gbc = new GridBagConstraints();
-        gbc.insets = new Insets(5, 5, 5, 5);
-        gbc.fill = GridBagConstraints.HORIZONTAL;
-
-        gbc.gridx = 0; gbc.gridy = 0;
-        gbc.gridwidth = 2;
-        busquedaPanel.add(tipoBusquedaCombo, gbc);
-
-        gbc.gridy = 1;
-        JLabel lblActividadInicio = new JLabel("Actividad de inicio:");
-        lblActividadInicio.setForeground(colorTexto);
-        busquedaPanel.add(lblActividadInicio, gbc);
-        gbc.gridy = 2;
-        busquedaPanel.add(actividadBusquedaCombo, gbc);
-
-        gbc.gridy = 3;
-        JButton buscarButton = new JButton("Buscar");
-        buscarButton.setBackground(colorAccent);
-        buscarButton.setForeground(colorTexto);
-        buscarButton.setBorder(BorderFactory.createEmptyBorder(5, 15, 5, 15));
-        buscarButton.setFocusPainted(false);
-        busquedaPanel.add(buscarButton, gbc);
-
-        gbc.gridy = 4;
-        busquedaPanel.add(new JScrollPane(resultadosBusqueda), gbc);
-
-        // === Panel de Consulta de Duración ===
-        JPanel duracionPanel = new JPanel(new GridBagLayout());
-        duracionPanel.setBackground(new Color(111, 63, 182, 100));
-        duracionPanel.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createTitledBorder(BorderFactory.createLineBorder(colorAccent, 2),
-                        "Consultar Duración del Proceso"),
-                BorderFactory.createEmptyBorder(5, 5, 5, 5)
-        ));
-
-        JButton calcularButton = new JButton("Calcular Duración");
-        calcularButton.setBackground(colorAccent);
-        calcularButton.setForeground(colorTexto);
-        calcularButton.setBorder(BorderFactory.createEmptyBorder(5, 15, 5, 15));
-        calcularButton.setFocusPainted(false);
-
-        JTextArea resultadoDuracion = new JTextArea(5, 30);
-        resultadoDuracion.setEditable(false);
-        resultadoDuracion.setBackground(new Color(255, 255, 255, 220));
-        resultadoDuracion.setBorder(BorderFactory.createLineBorder(colorAccent));
-
-        gbc = new GridBagConstraints();
-        gbc.insets = new Insets(5, 5, 5, 5);
-        gbc.fill = GridBagConstraints.HORIZONTAL;
-
-        gbc.gridx = 0; gbc.gridy = 0;
-        duracionPanel.add(calcularButton, gbc);
-        gbc.gridy = 1;
-        duracionPanel.add(new JScrollPane(resultadoDuracion), gbc);
-
-        // Agregar los paneles al TabbedPane
-        tabbedPane.addTab("Crear Tarea", creacionPanel);
-        tabbedPane.addTab("Buscar Tareas", busquedaPanel);
-        tabbedPane.addTab("Duración del Proceso", duracionPanel);
-
-        this.add(tabbedPane, BorderLayout.CENTER);
-
-        // === Eventos ===
-        procesoPanel.addActividadListener(() -> {
-            SwingUtilities.invokeLater(this::actualizarComboBoxActividades);
-        });
-        procesoPanel.addProcesoSelectionListener(e -> {
-            if (!e.getValueIsAdjusting()) {
-                SwingUtilities.invokeLater(this::actualizarComboBoxActividades);
-            }
-        });
-
-        tipoInsercionCombo.addActionListener(e ->
-                posicionSpinner.setEnabled(tipoInsercionCombo.getSelectedIndex() == 1));
-
-        tipoBusquedaCombo.addActionListener(e -> {
-            actividadBusquedaCombo.setEnabled(tipoBusquedaCombo.getSelectedIndex() == 2);
-            if (tipoBusquedaCombo.getSelectedIndex() != 2) {
-                actividadBusquedaCombo.setSelectedIndex(-1);
-            }
-        });
-
-        crearButton.addActionListener(e -> {
-            crearTarea();
-            // Actualizar los comboboxes después de crear la nueva actividad
-            SwingUtilities.invokeLater(this::actualizarComboBoxActividades);
-        });
-        buscarButton.addActionListener(e -> buscarTareas());
-        calcularButton.addActionListener(e -> {
-            UUID procesoId = procesoPanel.getSelectedProcesoId();
-            if (procesoId != null) {
-                GestionConsultas.TiempoProceso tiempo = gestionConsultas.calcularTiempoProceso(procesoId);
-                resultadoDuracion.setText(String.format(
-                        "Duración mínima: %d minutos\nDuración máxima: %d minutos",
-                        tiempo.getTiempoMinimo(),
-                        tiempo.getTiempoMaximo()
-                ));
-            } else {
-                mostrarError("Por favor seleccione un proceso primero");
-            }
-        });
-
-    }
-
-    private void actualizarComboBoxActividades() {
-        // Limpiar los combobox
-        actividadCombo.removeAllItems();
-        actividadBusquedaCombo.removeAllItems();
-
-        UUID procesoId = procesoPanel.getSelectedProcesoId();
-        if (procesoId == null) {
-            return;
+            // === Eventos ===
+            setupEventListeners(procesoPanel);
         }
 
-        // Obtener el proceso seleccionado directamente
-        Proceso proceso = procesoPanel.getGestionProcesos().buscarProceso(procesoId);
-        System.out.println("Actualizando actividades para proceso: " + procesoId); // Debug
+        private JTabbedPane createStyledTabbedPane() {
+            JTabbedPane tabbedPane = new JTabbedPane() {
+                @Override
+                protected void paintComponent(Graphics g) {
+                    Graphics2D g2d = (Graphics2D) g;
+                    g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
-        if (proceso != null) {
-            ListaEnlazada<Actividad> actividades = proceso.getActividades();
+                    // Fondo semi-transparente
+                    g2d.setColor(new Color(255, 255, 255, 30));
+                    g2d.fillRoundRect(0, 0, getWidth(), getHeight(), 20, 20);
 
-            if (actividades != null && actividades.getCabeza() != null) {
-                lastSelectedProcesoId = procesoId;
+                    super.paintComponent(g);
+                }
+            };
 
-                Nodo<Actividad> actual = actividades.getCabeza();
-                while (actual != null) {
-                    String nombreActividad = actual.getValorNodo().getNombre();
-                    System.out.println("Agregando actividad: " + nombreActividad); // Debug
-                    actividadCombo.addItem(nombreActividad);
-                    actividadBusquedaCombo.addItem(nombreActividad);
-                    actual = actual.getSiguienteNodo();
+            tabbedPane.setOpaque(false);
+            tabbedPane.setForeground(Color.black);
+            tabbedPane.setFont(new Font("Segoe UI", Font.BOLD, 12));
+
+            return tabbedPane;
+        }
+
+        private JTextField createStyledTextField() {
+            JTextField field = new JTextField() {
+                @Override
+                protected void paintComponent(Graphics g) {
+                    Graphics2D g2d = (Graphics2D) g.create();
+                    g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+
+                    g2d.setColor(new Color(255, 255, 255, 40));
+                    g2d.fillRoundRect(0, 0, getWidth()-1, getHeight()-1, 20, 20);
+                    g2d.dispose();
+
+                    super.paintComponent(g);
                 }
 
-                // Seleccionar el primer item si hay items disponibles
-                if (actividadCombo.getItemCount() > 0) {
-                    actividadCombo.setSelectedIndex(0);
-                    actividadBusquedaCombo.setSelectedIndex(0);
-                } else {
-                    actividadCombo.setSelectedIndex(-1);
+                @Override
+                protected void paintBorder(Graphics g) {
+                    Graphics2D g2d = (Graphics2D) g.create();
+                    g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                    g2d.setColor(new Color(255, 255, 255, 100));
+                    g2d.drawRoundRect(0, 0, getWidth()-1, getHeight()-1, 20, 20);
+                    g2d.dispose();
+                }
+            };
+
+            field.setOpaque(false);
+            field.setForeground(Color.WHITE);
+            field.setCaretColor(Color.WHITE);
+            field.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+            field.setBorder(BorderFactory.createEmptyBorder(4, 10, 4, 10));
+
+            return field;
+        }
+
+        private JTextArea createStyledTextArea() {
+            JTextArea area = new JTextArea() {
+                @Override
+                protected void paintComponent(Graphics g) {
+                    Graphics2D g2d = (Graphics2D) g.create();
+                    g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+
+                    g2d.setColor(new Color(255, 255, 255, 40));
+                    g2d.fillRoundRect(0, 0, getWidth()-1, getHeight()-1, 20, 20);
+                    g2d.dispose();
+
+                    super.paintComponent(g);
+                }
+            };
+
+            area.setOpaque(false);
+            area.setForeground(Color.WHITE);
+            area.setCaretColor(Color.WHITE);
+            area.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+            area.setLineWrap(true);
+            area.setWrapStyleWord(true);
+            area.setBorder(BorderFactory.createEmptyBorder(4, 10, 4, 10));
+
+            return area;
+        }
+
+        private JSpinner createStyledSpinner(SpinnerNumberModel model) {
+            JSpinner spinner = new JSpinner(model) {
+                @Override
+                protected void paintComponent(Graphics g) {
+                    Graphics2D g2d = (Graphics2D) g.create();
+                    g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+
+                    g2d.setColor(new Color(255, 255, 255, 40));
+                    g2d.fillRoundRect(0, 0, getWidth()-1, getHeight()-1, 20, 20);
+                    g2d.dispose();
+
+                    super.paintComponent(g);
+                }
+            };
+
+            spinner.setOpaque(false);
+            spinner.setBorder(new InterRegister.RoundedBorder(20));
+            JComponent editor = spinner.getEditor();
+            if (editor instanceof JSpinner.DefaultEditor) {
+                JTextField tf = ((JSpinner.DefaultEditor) editor).getTextField();
+                tf.setForeground(Color.WHITE);
+                tf.setCaretColor(Color.WHITE);
+                tf.setOpaque(false);
+                tf.setBorder(BorderFactory.createEmptyBorder(4, 10, 4, 10));
+            }
+
+            return spinner;
+        }
+
+        private JComboBox<String> createStyledComboBox(String[] items) {
+            JComboBox<String> comboBox = new JComboBox<>(items) {
+                @Override
+                protected void paintComponent(Graphics g) {
+                    Graphics2D g2d = (Graphics2D) g.create();
+                    g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+
+                    g2d.setColor(new Color(255, 255, 255, 40));
+                    g2d.fillRoundRect(0, 0, getWidth()-1, getHeight()-1, 20, 20);
+                    g2d.dispose();
+
+                    super.paintComponent(g);
+                }
+            };
+
+            comboBox.setOpaque(false);
+            comboBox.setForeground(Color.WHITE);
+            comboBox.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+            comboBox.setBorder(new InterRegister.RoundedBorder(20));
+
+            return comboBox;
+        }
+
+        private JCheckBox createStyledCheckBox(String text) {
+            JCheckBox checkBox = new JCheckBox(text) {
+                @Override
+                protected void paintComponent(Graphics g) {
+                    Graphics2D g2d = (Graphics2D) g.create();
+                    g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+
+                    if (isSelected()) {
+                        g2d.setColor(new Color(255, 255, 255, 80));
+                    } else {
+                        g2d.setColor(new Color(255, 255, 255, 40));
+                    }
+                    g2d.fillRoundRect(0, 0, 20, 20, 5, 5);
+                    g2d.dispose();
+
+                    super.paintComponent(g);
+                }
+            };
+
+            checkBox.setOpaque(false);
+            checkBox.setForeground(Color.WHITE);
+            checkBox.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+
+            return checkBox;
+        }
+
+        private JButton createStyledButton(String text, int fontSize) {
+            JButton button = new JButton(text) {
+                @Override
+                protected void paintComponent(Graphics g) {
+                    Graphics2D g2d = (Graphics2D) g;
+                    g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                    if (getModel().isPressed()) {
+                        g2d.setColor(new Color(255, 255, 255, 60));
+                    } else if (getModel().isRollover()) {
+                        g2d.setColor(hoverColor);
+                    } else {
+                        g2d.setColor(primaryColor);
+                    }
+                    g2d.fillRoundRect(0, 0, getWidth()-1, getHeight()-1, 20, 20);
+
+                    FontMetrics metrics = g2d.getFontMetrics(getFont());
+                    int textWidth = metrics.stringWidth(getText());
+                    int textHeight = metrics.getHeight();
+                    int x = (getWidth() - textWidth) / 2;
+                    int y = ((getHeight() - textHeight) / 2) + metrics.getAscent();
+
+                    g2d.setColor(Color.WHITE);
+                    g2d.setFont(new Font("Segoe UI", Font.BOLD, fontSize));
+                    g2d.drawString(getText(), x, y);
+                }
+
+                @Override
+                protected void paintBorder(Graphics g) {
+                    Graphics2D g2d = (Graphics2D) g.create();
+                    g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                    g2d.setColor(new Color(255, 255, 255, 100));
+                    g2d.drawRoundRect(0, 0, getWidth()-1, getHeight()-1, 20, 20);
+                    g2d.dispose();
+                }
+            };
+
+            button.setOpaque(false);
+            button.setFocusPainted(false);
+            button.setBorderPainted(false);
+            button.setContentAreaFilled(false);
+            button.setFont(new Font("Segoe UI", Font.BOLD, fontSize));
+            button.setForeground(Color.WHITE);
+            button.setCursor(new Cursor(Cursor.HAND_CURSOR));
+            button.setPreferredSize(new Dimension(200, 40));
+
+            return button;
+        }
+
+        private JLabel createStyledLabel(String text) {
+            JLabel label = new JLabel(text);
+            label.setForeground(Color.WHITE);
+            label.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+            label.setHorizontalAlignment(SwingConstants.CENTER);
+            return label;
+        }
+
+        private void addComponentToPanel(JPanel panel, String labelText, JComponent component) {
+            JPanel wrapper = new JPanel();
+            wrapper.setOpaque(false);
+            wrapper.setLayout(new BoxLayout(wrapper, BoxLayout.Y_AXIS));
+
+            JLabel label = new JLabel(labelText);
+            label.setForeground(Color.black);
+            label.setFont(new Font("Segoe UI", Font.BOLD, 12));
+            label.setAlignmentX(Component.LEFT_ALIGNMENT);
+
+            component.setAlignmentX(Component.LEFT_ALIGNMENT);
+            component.setMaximumSize(new Dimension(Integer.MAX_VALUE, component.getPreferredSize().height));
+
+            wrapper.add(label);
+            wrapper.add(Box.createVerticalStrut(5));
+            wrapper.add(component);
+            wrapper.add(Box.createVerticalStrut(10));
+
+            panel.add(wrapper);
+        }
+
+        private void setupEventListeners(ProcesoPanel procesoPanel) {
+            procesoPanel.addActividadListener(() -> {
+                SwingUtilities.invokeLater(controller::actualizarComboBoxActividades);
+            });
+
+            procesoPanel.addProcesoSelectionListener(e -> {
+                if (!e.getValueIsAdjusting()) {
+                    SwingUtilities.invokeLater(controller::actualizarComboBoxActividades);
+                }
+            });
+
+            tipoInsercionCombo.addActionListener(e ->
+                    posicionSpinner.setEnabled(tipoInsercionCombo.getSelectedIndex() == 1));
+
+            tipoBusquedaCombo.addActionListener(e -> {
+                actividadBusquedaCombo.setEnabled(tipoBusquedaCombo.getSelectedIndex() == 2);
+                if (tipoBusquedaCombo.getSelectedIndex() != 2) {
                     actividadBusquedaCombo.setSelectedIndex(-1);
                 }
+            });
+
+            crearButton.addActionListener(e -> {
+                try {
+                    controller.crearTarea(
+                            (String) actividadCombo.getSelectedItem(),
+                            descripcionField.getText().trim(),
+                            (Integer) duracionSpinner.getValue(),
+                            obligatoriaCheck.isSelected(),
+                            tipoInsercionCombo.getSelectedIndex(),
+                            (Integer) posicionSpinner.getValue()
+                    );
+                    limpiarCampos();
+                    mostrarExito("Tarea creada exitosamente");
+                    SwingUtilities.invokeLater(controller::actualizarComboBoxActividades);
+                } catch (Exception ex) {
+                    mostrarError("Error al crear la tarea: " + ex.getMessage());
+                }
+            });
+
+            buscarButton.addActionListener(e -> {
+                try {
+                    String resultado = controller.buscarTareas(
+                            tipoBusquedaCombo.getSelectedIndex(),
+                            (String) actividadBusquedaCombo.getSelectedItem()
+                    );
+                    resultadosBusqueda.setText(resultado);
+                } catch (Exception ex) {
+                    mostrarError("Error al buscar tareas: " + ex.getMessage());
+                }
+            });
+
+            calcularButton.addActionListener(e -> {
+                try {
+                    GestionConsultas.TiempoProceso tiempo = controller.calcularDuracionProceso();
+                    resultadoDuracion.setText(String.format(
+                            "Duración mínima: %d minutos\nDuración máxima: %d minutos",
+                            tiempo.getTiempoMinimo(),
+                            tiempo.getTiempoMaximo()
+                    ));
+                } catch (Exception ex) {
+                    mostrarError(ex.getMessage());
+                }
+            });
+        }
+
+        // Métodos públicos para el controller
+        public void limpiarComboBoxes() {
+            actividadCombo.removeAllItems();
+            actividadBusquedaCombo.removeAllItems();
+        }
+
+        public void agregarActividad(String nombreActividad) {
+            actividadCombo.addItem(nombreActividad);
+            actividadBusquedaCombo.addItem(nombreActividad);
+        }
+
+        public void seleccionarPrimeraActividad() {
+            if (actividadCombo.getItemCount() > 0) {
+                actividadCombo.setSelectedIndex(0);
+                actividadBusquedaCombo.setSelectedIndex(0);
             } else {
-                System.out.println("No se encontraron actividades para el proceso"); // Debug
+                actividadCombo.setSelectedIndex(-1);
+                actividadBusquedaCombo.setSelectedIndex(-1);
             }
-        } else {
-            System.out.println("No se encontró el proceso con ID: " + procesoId); // Debug
-        }
-    }
-
-
-    public void forzarActualizacionActividades() {
-        SwingUtilities.invokeLater(this::actualizarComboBoxActividades);
-    }
-
-    private void crearTarea() {
-        UUID procesoId = procesoPanel.getSelectedProcesoId();
-        if (procesoId == null) {
-            mostrarError("Por favor seleccione un proceso primero");
-            return;
         }
 
-        String actividad = (String) actividadCombo.getSelectedItem();
-        if (actividad == null) {
-            mostrarError("Por favor seleccione una actividad");
-            return;
+        private void limpiarCampos() {
+            descripcionField.setText("");
+            duracionSpinner.setValue(30);
+            obligatoriaCheck.setSelected(false);
+            tipoInsercionCombo.setSelectedIndex(0);
+            posicionSpinner.setValue(1);
         }
 
-        String descripcion = descripcionField.getText().trim();
-        int duracion = (Integer) duracionSpinner.getValue();
-        boolean obligatoria = obligatoriaCheck.isSelected();
-
-        if (descripcion.isEmpty()) {
-            mostrarError("Por favor complete la descripción");
-            return;
+        private void mostrarError(String mensaje) {
+            JOptionPane.showMessageDialog(this, mensaje, "Error", JOptionPane.ERROR_MESSAGE);
         }
 
-        try {
-            if (tipoInsercionCombo.getSelectedIndex() == 0) {
-                gestionTareas.agregarTarea(procesoId, actividad, descripcion, duracion, obligatoria);
-            } else {
-                int posicion = (Integer) posicionSpinner.getValue() - 1;
-                gestionTareas.insertarTareaEnPosicion(procesoId, actividad, posicion, descripcion, duracion, obligatoria);
-            }
-            limpiarCampos();
-            mostrarExito("Tarea creada exitosamente");
-        } catch (Exception ex) {
-            mostrarError("Error al crear la tarea: " + ex.getMessage());
+        private void mostrarExito(String mensaje) {
+            JOptionPane.showMessageDialog(this, mensaje, "Éxito", JOptionPane.INFORMATION_MESSAGE);
         }
     }
-
-    private void buscarTareas() {
-        UUID procesoId = procesoPanel.getSelectedProcesoId();
-        if (procesoId == null) {
-            mostrarError("Por favor seleccione un proceso primero");
-            return;
-        }
-
-        try {
-            GestionConsultas.TipoBusqueda tipoBusqueda;
-            String criterio = "";
-
-            switch (tipoBusquedaCombo.getSelectedIndex()) {
-                case 0:
-                    tipoBusqueda = GestionConsultas.TipoBusqueda.DESDE_INICIO;
-                    break;
-                case 1:
-                    tipoBusqueda = GestionConsultas.TipoBusqueda.DESDE_ACTIVIDAD_ACTUAL;
-                    break;
-                case 2:
-                    tipoBusqueda = GestionConsultas.TipoBusqueda.DESDE_ACTIVIDAD_ESPECIFICA;
-                    criterio = (String) actividadBusquedaCombo.getSelectedItem();
-                    if (criterio == null) {
-                        mostrarError("Por favor seleccione una actividad para la búsqueda");
-                        return;
-                    }
-                    break;
-                default:
-                    return;
-            }
-
-            var tareas = gestionConsultas.buscarTareas(procesoId, tipoBusqueda, criterio);
-            StringBuilder resultado = new StringBuilder();
-            for (var tarea : tareas) {
-                resultado.append("Descripción: ").append(tarea.getDescripcion())
-                        .append("\nDuración: ").append(tarea.getDuracion())
-                        .append(" min\nObligatoria: ").append(tarea.isObligatoria())
-                        .append("\n\n");
-            }
-            resultadosBusqueda.setText(resultado.toString());
-
-        } catch (Exception ex) {
-            mostrarError("Error al buscar tareas: " + ex.getMessage());
-        }
-    }
-
-    private void limpiarCampos() {
-        descripcionField.setText("");
-        duracionSpinner.setValue(30);
-        obligatoriaCheck.setSelected(false);
-        tipoInsercionCombo.setSelectedIndex(0);
-        posicionSpinner.setValue(1);
-    }
-
-    private void mostrarError(String mensaje) {
-        JOptionPane.showMessageDialog(this, mensaje, "Error", JOptionPane.ERROR_MESSAGE);
-    }
-
-    private void mostrarExito(String mensaje) {
-        JOptionPane.showMessageDialog(this, mensaje, "Éxito", JOptionPane.INFORMATION_MESSAGE);
-    }
-}

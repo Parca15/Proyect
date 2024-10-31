@@ -43,7 +43,7 @@ public class MainApplication extends JFrame {
         UIManager.put("TabbedPane.selected", colorAccent);
         UIManager.put("TabbedPane.background", colorSecundario);
         UIManager.put("TabbedPane.foreground", colorTexto);
-        UIManager.put("TabbedPane.selectedForeground", Color.WHITE);
+        UIManager.put("TabbedPane.selectedForeground", Color.white);
         UIManager.put("TabbedPane.contentAreaColor", colorFondoPrincipal);
 
         // Panel central para pestañas de actividades y tareas
