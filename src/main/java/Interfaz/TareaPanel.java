@@ -1,10 +1,8 @@
     package Interfaz;
 
     import javax.swing.*;
-    import javax.swing.border.EmptyBorder;
+    import javax.swing.plaf.basic.BasicTabbedPaneUI;
     import java.awt.*;
-    import java.awt.event.MouseAdapter;
-    import java.awt.event.MouseEvent;
 
     import Controller.TareaController;
     import Funcionalidades.GestionTareas;
@@ -41,17 +39,17 @@
             // Inicialización de componentes
             descripcionField = createStyledTextField();
             duracionSpinner = createStyledSpinner(new SpinnerNumberModel(30, 1, 300, 1));
-            obligatoriaCheck = createStyledCheckBox("Obligatoria");
+            obligatoriaCheck = createStyledCheckBox();
             actividadCombo = createStyledComboBox(new String[]{});
             tipoInsercionCombo = createStyledComboBox(new String[]{"Al final", "En posición"});
             posicionSpinner = createStyledSpinner(new SpinnerNumberModel(1, 1, 100, 1));
             tipoBusquedaCombo = createStyledComboBox(new String[]{"Por proceso", "Actividad reciente", "Por actividad"});
             actividadBusquedaCombo = createStyledComboBox(new String[]{});
             resultadosBusqueda = createStyledTextArea();
-            crearButton = createStyledButton("Crear Tarea", 12);
-            buscarButton = createStyledButton("Buscar", 12);
-            calcularButton = createStyledButton("Calcular", 12);
-            resultadoDuracion = createStyledLabel("");
+            crearButton = createStyledButton("Crear Tarea");
+            buscarButton = createStyledButton("Buscar");
+            calcularButton = createStyledButton("Calcular");
+            resultadoDuracion = createStyledLabel();
 
             // Panel principal con degradado
             JPanel mainPanel = new JPanel() {
@@ -81,15 +79,38 @@
                 }
             };
             mainPanel.setLayout(new BoxLayout(mainPanel, BoxLayout.Y_AXIS));
+            mainPanel.setOpaque(false);
 
-            // Crear pestañas con el nuevo estilo
+            // Crear pestañas con el nuevo estilo y hacerlas transparentes
             JTabbedPane tabbedPane = createStyledTabbedPane();
+            tabbedPane.setOpaque(false);
+            UIManager.put("TabbedPane.contentOpaque", false);
 
-            // Panel de creación
-            JPanel creacionPanel = new JPanel();
+            // Configurar UI personalizado para el TabbedPane
+            tabbedPane.setUI(new BasicTabbedPaneUI() {
+                @Override
+                protected void installDefaults() {
+                    super.installDefaults();
+                    contentBorderInsets = new Insets(0, 0, 0, 0);
+                    tabAreaInsets = new Insets(0, 0, 0, 0);
+                }
+
+                @Override
+                protected void paintContentBorder(Graphics g, int tabPlacement, int selectedIndex) {
+                    // No pintar el borde del contenido
+                }
+            });
+
+            // Panel de creación con transparencia
+            JPanel creacionPanel = new JPanel() {
+                @Override
+                protected void paintComponent(Graphics g) {
+                    // No llamar a super.paintComponent para mantener transparencia
+                }
+            };
             creacionPanel.setLayout(new BoxLayout(creacionPanel, BoxLayout.Y_AXIS));
             creacionPanel.setOpaque(false);
-            creacionPanel.setBorder(BorderFactory.createEmptyBorder(20, 25, 20, 25));;
+            creacionPanel.setBorder(BorderFactory.createEmptyBorder(20, 25, 20, 25));
 
             // Agregar componentes al panel de creación
             addComponentToPanel(creacionPanel, "Descripción", descripcionField);
@@ -102,8 +123,20 @@
             creacionPanel.add(Box.createVerticalStrut(20));
             creacionPanel.add(crearButton);
 
-            // Panel de búsqueda
-            JPanel busquedaPanel = new JPanel();
+            // Hacer transparentes los paneles contenedores en creacionPanel
+            for (Component comp : creacionPanel.getComponents()) {
+                if (comp instanceof JPanel) {
+                    ((JPanel) comp).setOpaque(false);
+                }
+            }
+
+            // Panel de búsqueda con transparencia
+            JPanel busquedaPanel = new JPanel() {
+                @Override
+                protected void paintComponent(Graphics g) {
+                    // No llamar a super.paintComponent para mantener transparencia
+                }
+            };
             busquedaPanel.setLayout(new BoxLayout(busquedaPanel, BoxLayout.Y_AXIS));
             busquedaPanel.setOpaque(false);
             busquedaPanel.setBorder(BorderFactory.createEmptyBorder(20, 25, 20, 25));
@@ -114,14 +147,26 @@
             busquedaPanel.add(buscarButton);
             busquedaPanel.add(Box.createVerticalStrut(10));
 
+            // Hacer transparentes los paneles contenedores en busquedaPanel
+            for (Component comp : busquedaPanel.getComponents()) {
+                if (comp instanceof JPanel) {
+                    ((JPanel) comp).setOpaque(false);
+                }
+            }
+
             JScrollPane scrollPane = new JScrollPane(resultadosBusqueda);
             scrollPane.setOpaque(false);
             scrollPane.getViewport().setOpaque(false);
             scrollPane.setBorder(new InterRegister.RoundedBorder(20));
             busquedaPanel.add(scrollPane);
 
-            // Panel de cálculo
-            JPanel calculoPanel = new JPanel();
+            // Panel de cálculo con transparencia
+            JPanel calculoPanel = new JPanel() {
+                @Override
+                protected void paintComponent(Graphics g) {
+                    // No llamar a super.paintComponent para mantener transparencia
+                }
+            };
             calculoPanel.setLayout(new BoxLayout(calculoPanel, BoxLayout.Y_AXIS));
             calculoPanel.setOpaque(false);
             calculoPanel.setBorder(BorderFactory.createEmptyBorder(20, 25, 20, 25));
@@ -129,6 +174,13 @@
             calculoPanel.add(calcularButton);
             calculoPanel.add(Box.createVerticalStrut(20));
             calculoPanel.add(resultadoDuracion);
+
+            // Hacer transparentes los paneles contenedores en calculoPanel
+            for (Component comp : calculoPanel.getComponents()) {
+                if (comp instanceof JPanel) {
+                    ((JPanel) comp).setOpaque(false);
+                }
+            }
 
             // Agregar paneles a las pestañas
             tabbedPane.addTab("Crear", creacionPanel);
@@ -275,8 +327,8 @@
             return comboBox;
         }
 
-        private JCheckBox createStyledCheckBox(String text) {
-            JCheckBox checkBox = new JCheckBox(text) {
+        private JCheckBox createStyledCheckBox() {
+            JCheckBox checkBox = new JCheckBox("Obligatoria") {
                 @Override
                 protected void paintComponent(Graphics g) {
                     Graphics2D g2d = (Graphics2D) g.create();
@@ -301,7 +353,7 @@
             return checkBox;
         }
 
-        private JButton createStyledButton(String text, int fontSize) {
+        private JButton createStyledButton(String text) {
             JButton button = new JButton(text) {
                 @Override
                 protected void paintComponent(Graphics g) {
@@ -323,7 +375,7 @@
                     int y = ((getHeight() - textHeight) / 2) + metrics.getAscent();
 
                     g2d.setColor(Color.WHITE);
-                    g2d.setFont(new Font("Segoe UI", Font.BOLD, fontSize));
+                    g2d.setFont(new Font("Segoe UI", Font.BOLD, 12));
                     g2d.drawString(getText(), x, y);
                 }
 
@@ -341,7 +393,7 @@
             button.setFocusPainted(false);
             button.setBorderPainted(false);
             button.setContentAreaFilled(false);
-            button.setFont(new Font("Segoe UI", Font.BOLD, fontSize));
+            button.setFont(new Font("Segoe UI", Font.BOLD, 12));
             button.setForeground(Color.WHITE);
             button.setCursor(new Cursor(Cursor.HAND_CURSOR));
             button.setPreferredSize(new Dimension(200, 40));
@@ -349,8 +401,8 @@
             return button;
         }
 
-        private JLabel createStyledLabel(String text) {
-            JLabel label = new JLabel(text);
+        private JLabel createStyledLabel() {
+            JLabel label = new JLabel("");
             label.setForeground(Color.WHITE);
             label.setFont(new Font("Segoe UI", Font.PLAIN, 14));
             label.setHorizontalAlignment(SwingConstants.CENTER);
@@ -410,7 +462,7 @@
                             (Integer) posicionSpinner.getValue()
                     );
                     limpiarCampos();
-                    mostrarExito("Tarea creada exitosamente");
+                    mostrarExito();
                     SwingUtilities.invokeLater(controller::actualizarComboBoxActividades);
                 } catch (Exception ex) {
                     mostrarError("Error al crear la tarea: " + ex.getMessage());
@@ -476,7 +528,7 @@
             JOptionPane.showMessageDialog(this, mensaje, "Error", JOptionPane.ERROR_MESSAGE);
         }
 
-        private void mostrarExito(String mensaje) {
-            JOptionPane.showMessageDialog(this, mensaje, "Éxito", JOptionPane.INFORMATION_MESSAGE);
+        private void mostrarExito() {
+            JOptionPane.showMessageDialog(this, "Tarea creada exitosamente", "Éxito", JOptionPane.INFORMATION_MESSAGE);
         }
     }

@@ -19,7 +19,7 @@ public class MainApplication extends JFrame {
         Color colorFondoPrincipal = new Color(111, 63, 182);        // Morado principal
         Color colorSecundario = new Color(139, 92, 246);           // Morado más claro
         Color colorAccent = new Color(167, 139, 250);             // Morado claro/lavanda
-        Color colorTexto = Color.WHITE;                           // Texto blanco
+        Color colorTexto = Color.BLACK;                           // Texto blanco
 
         // Inicializar los gestores
         GestionProcesos gestionProcesos = new GestionProcesos(new HashMap<UUID, Proceso>());
@@ -76,6 +76,7 @@ public class MainApplication extends JFrame {
                 }
             }
         });
+        centerTabbedPane.setFont(new Font("Arial", Font.BOLD, 12));
 
         // Agregar paneles al mainPanel
         mainPanel.add(leftPanel, BorderLayout.WEST);
