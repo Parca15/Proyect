@@ -11,6 +11,7 @@ public class EmailSender {
     private final String username = "danielhisaza16@gmail.com";
     private final String password = "ylkybslrxbjksrfs";
     private final Properties prop;
+    private static EmailSender instance;
 
     // Patrón simple para validar formato de email
     private static final Pattern EMAIL_PATTERN = Pattern.compile("^[A-Za-z0-9+_.-]+@(.+)$");
@@ -21,6 +22,13 @@ public class EmailSender {
         prop.put("mail.smtp.port", "587");
         prop.put("mail.smtp.auth", "true");
         prop.put("mail.smtp.starttls.enable", "true");
+    }
+
+    public static EmailSender getInstance() {
+        if (instance == null) {
+            instance = new EmailSender();
+        }
+        return instance;
     }
 
     private boolean isValidEmail(String email) {

@@ -2,11 +2,18 @@ package Funcionalidades;
 
 import EstructurasDatos.Cola;
 import ModelosBase.Actividad;
+import ModelosBase.EmailSender;
 import ModelosBase.Notificaciones.Notificacion;
 import ModelosBase.Notificaciones.PrioridadNotificacion;
 import ModelosBase.Notificaciones.TipoNotificacion;
 import ModelosBase.Proceso;
 import ModelosBase.Tarea;
+import jakarta.mail.MessagingException;
+
+import java.io.BufferedReader;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.function.Consumer;
@@ -15,6 +22,7 @@ public class GestionNotificaciones {
     private static GestionNotificaciones instancia;
     private Cola<Notificacion> notificaciones;
     private Consumer<Notificacion> manejoNotificacion;
+    private EmailSender emailSender = EmailSender.getInstance();
 
     private GestionNotificaciones() {
         this.notificaciones = new Cola<>();
@@ -91,9 +99,17 @@ public class GestionNotificaciones {
     public void crearNotificacion(String titulo, String mensaje, TipoNotificacion tipo, PrioridadNotificacion prioridad, String idReferencia) {
         Notificacion notificacion = new Notificacion(titulo, mensaje, tipo, prioridad, idReferencia);
         notificaciones.encolar(notificacion);
-
         if (manejoNotificacion != null) {
             manejoNotificacion.accept(notificacion);
+            try {
+                String correo = "";
+                FileReader fr = new FileReader("src/main/resources/Login_Archivo/UsuarioActual");
+                BufferedReader br = new BufferedReader(fr);
+                correo = br.readLine();
+                emailSender.sendEmail(correo, titulo, mensaje);
+            } catch (IOException | MessagingException e) {
+                throw new RuntimeException(e);
+            }
         }
     }
 
