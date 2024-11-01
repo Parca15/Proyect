@@ -53,4 +53,42 @@ public class Login {
         }
         return correo;
     }
+
+    public static String extraerTelefono(String usuario, String contraseña, String resourcePath) {
+        String telefono = "";
+        if (isUserInFile(usuario, contraseña, resourcePath)) {
+            try (InputStream inputStream = Login.class.getClassLoader().getResourceAsStream(resourcePath);
+                 BufferedReader br = new BufferedReader(new InputStreamReader(inputStream))) {
+                String line;
+                while ((line = br.readLine()) != null) {
+                    String[] credentials = line.split("@@");
+                    if (credentials[2].trim().equals(usuario) && credentials[3].trim().equals(contraseña)) {
+                        telefono = credentials[5];
+                    }
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        return telefono;
+    }
+
+    public static String extraerNombre(String usuario, String contraseña, String resourcePath) {
+        String nombre = "";
+        if (isUserInFile(usuario, contraseña, resourcePath)) {
+            try (InputStream inputStream = Login.class.getClassLoader().getResourceAsStream(resourcePath);
+                 BufferedReader br = new BufferedReader(new InputStreamReader(inputStream))) {
+                String line;
+                while ((line = br.readLine()) != null) {
+                    String[] credentials = line.split("@@");
+                    if (credentials[2].trim().equals(usuario) && credentials[3].trim().equals(contraseña)) {
+                        nombre = credentials[0] +" "+ credentials[1];
+                    }
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        return nombre;
+    }
 }
