@@ -5,10 +5,14 @@ import ModelosBase.Proceso;
 
 import javax.swing.*;
 import java.awt.*;
+import java.io.File;
 import java.util.HashMap;
 import java.util.UUID;
 
 public class MainApplication extends JFrame {
+    private final GestionProcesos gestionProcesos;
+    private final ExcelDataHandler excelHandler;
+
     public MainApplication() {
         super("Sistema de Gestión de Procesos");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -19,10 +23,11 @@ public class MainApplication extends JFrame {
         Color colorFondoPrincipal = new Color(111, 63, 182);        // Morado principal
         Color colorSecundario = new Color(139, 92, 246);           // Morado más claro
         Color colorAccent = new Color(167, 139, 250);             // Morado claro/lavanda
-        Color colorTexto = Color.BLACK;                           // Texto blanco
+        Color colorTexto = Color.BLACK;                           // Texto negro
 
         // Inicializar los gestores
-        GestionProcesos gestionProcesos = new GestionProcesos(new HashMap<UUID, Proceso>());
+        gestionProcesos = new GestionProcesos(new HashMap<UUID, Proceso>());
+        excelHandler = new ExcelDataHandler(gestionProcesos);
         GestionActividades gestionActividades = new GestionActividades(gestionProcesos);
         GestionTareas gestionTareas = new GestionTareas(gestionProcesos);
         GestionConsultas gestionConsultas = new GestionConsultas(gestionProcesos);
@@ -31,6 +36,10 @@ public class MainApplication extends JFrame {
         JPanel mainPanel = new JPanel(new BorderLayout(10, 10));
         mainPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
         mainPanel.setBackground(colorFondoPrincipal);
+
+        // Crear barra de menú
+        JMenuBar menuBar = crearMenuBar(colorSecundario, colorTexto);
+        setJMenuBar(menuBar);
 
         // Panel izquierdo para procesos
         ProcesoPanel procesoPanel = new ProcesoPanel(gestionProcesos);
@@ -46,16 +55,14 @@ public class MainApplication extends JFrame {
         UIManager.put("TabbedPane.selectedForeground", Color.white);
         UIManager.put("TabbedPane.contentAreaColor", colorFondoPrincipal);
 
-        // Panel central para pestañas de dashboard, actividades y tareas
+        // Panel central para pestañas
         JTabbedPane centerTabbedPane = new JTabbedPane();
         centerTabbedPane.setBackground(colorSecundario);
         centerTabbedPane.setForeground(colorTexto);
 
-        // Crear e inicializar el panel de dashboard
+        // Crear e inicializar paneles
         DashboardPanel dashboardPanel = new DashboardPanel(gestionProcesos);
         dashboardPanel.setBackground(colorFondoPrincipal);
-
-        // Crear los paneles de actividades y tareas
         ActividadPanel actividadPanel = new ActividadPanel(gestionActividades, procesoPanel);
         TareaPanel tareaPanel = new TareaPanel(gestionTareas, gestionConsultas, procesoPanel);
 
@@ -63,16 +70,16 @@ public class MainApplication extends JFrame {
         actividadPanel.setBackground(colorFondoPrincipal);
         tareaPanel.setBackground(colorFondoPrincipal);
 
-        // Agregar las pestañas al TabbedPane
+        // Agregar las pestañas
         centerTabbedPane.addTab("Dashboard", new ImageIcon(), dashboardPanel, "Vista general del sistema");
         centerTabbedPane.addTab("Actividades", actividadPanel);
         centerTabbedPane.addTab("Tareas", tareaPanel);
 
-        // Agregar bordes con el color del tema
+        // Agregar bordes
         mainPanel.setBorder(BorderFactory.createLineBorder(colorAccent, 2));
         leftPanel.setBorder(BorderFactory.createLineBorder(colorAccent, 1));
 
-        // Agregar efecto hover a las pestañas
+        // Efecto hover en pestañas
         centerTabbedPane.addChangeListener(e -> {
             int selectedIndex = centerTabbedPane.getSelectedIndex();
             for (int i = 0; i < centerTabbedPane.getTabCount(); i++) {
@@ -83,7 +90,6 @@ public class MainApplication extends JFrame {
                 }
             }
 
-            // Actualizar estadísticas cuando se selecciona la pestaña del dashboard
             if (selectedIndex == 0) {
                 dashboardPanel.actualizarEstadisticas();
             }
@@ -94,15 +100,126 @@ public class MainApplication extends JFrame {
         mainPanel.add(leftPanel, BorderLayout.WEST);
         mainPanel.add(centerTabbedPane, BorderLayout.CENTER);
 
-        // Agregar el panel principal al frame
+        // Toolbar para acciones rápidas
+        JToolBar toolBar = crearToolBar(colorSecundario);
+        mainPanel.add(toolBar, BorderLayout.NORTH);
+
         setContentPane(mainPanel);
 
-        // Aplicar tema oscuro a los componentes del sistema
+        // Aplicar tema del sistema
         try {
             UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
             SwingUtilities.updateComponentTreeUI(this);
         } catch (Exception e) {
             e.printStackTrace();
+        }
+    }
+
+    private JMenuBar crearMenuBar(Color colorSecundario, Color colorTexto) {
+        JMenuBar menuBar = new JMenuBar();
+        menuBar.setBackground(colorSecundario);
+
+        JMenu archivoMenu = new JMenu("Archivo");
+        archivoMenu.setForeground(colorTexto);
+
+        JMenuItem exportarMenuItem = new JMenuItem("Exportar a Excel");
+        JMenuItem importarMenuItem = new JMenuItem("Importar desde Excel");
+
+        exportarMenuItem.addActionListener(e -> exportarDatos());
+        importarMenuItem.addActionListener(e -> importarDatos());
+
+        archivoMenu.add(exportarMenuItem);
+        archivoMenu.add(importarMenuItem);
+        menuBar.add(archivoMenu);
+
+        return menuBar;
+    }
+
+    private JToolBar crearToolBar(Color colorSecundario) {
+        JToolBar toolBar = new JToolBar();
+        toolBar.setFloatable(false);
+        toolBar.setBackground(colorSecundario);
+
+        JButton exportarButton = new JButton("Exportar");
+        JButton importarButton = new JButton("Importar");
+
+        exportarButton.addActionListener(e -> exportarDatos());
+        importarButton.addActionListener(e -> importarDatos());
+
+        toolBar.add(exportarButton);
+        toolBar.add(importarButton);
+
+        return toolBar;
+    }
+
+    private void exportarDatos() {
+        JFileChooser fileChooser = new JFileChooser();
+        fileChooser.setDialogTitle("Exportar datos a Excel");
+        fileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
+        fileChooser.setFileFilter(new javax.swing.filechooser.FileFilter() {
+            public boolean accept(File f) {
+                return f.getName().toLowerCase().endsWith(".xlsx") || f.isDirectory();
+            }
+
+            public String getDescription() {
+                return "Archivos Excel (*.xlsx)";
+            }
+        });
+
+        int result = fileChooser.showSaveDialog(this);
+        if (result == JFileChooser.APPROVE_OPTION) {
+            File selectedFile = fileChooser.getSelectedFile();
+            String filePath = selectedFile.getAbsolutePath();
+            if (!filePath.toLowerCase().endsWith(".xlsx")) {
+                filePath += ".xlsx";
+            }
+
+            try {
+                excelHandler.exportarDatos(filePath);
+                JOptionPane.showMessageDialog(this,
+                        "Datos exportados exitosamente",
+                        "Éxito",
+                        JOptionPane.INFORMATION_MESSAGE);
+            } catch (Exception ex) {
+                JOptionPane.showMessageDialog(this,
+                        "Error al exportar los datos: " + ex.getMessage(),
+                        "Error",
+                        JOptionPane.ERROR_MESSAGE);
+            }
+        }
+    }
+
+    private void importarDatos() {
+        JFileChooser fileChooser = new JFileChooser();
+        fileChooser.setDialogTitle("Importar datos desde Excel");
+        fileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
+        fileChooser.setFileFilter(new javax.swing.filechooser.FileFilter() {
+            public boolean accept(File f) {
+                return f.getName().toLowerCase().endsWith(".xlsx") || f.isDirectory();
+            }
+
+            public String getDescription() {
+                return "Archivos Excel (*.xlsx)";
+            }
+        });
+
+        int result = fileChooser.showOpenDialog(this);
+        if (result == JFileChooser.APPROVE_OPTION) {
+            try {
+                excelHandler.importarDatos(fileChooser.getSelectedFile().getAbsolutePath());
+                JOptionPane.showMessageDialog(this,
+                        "Datos importados exitosamente",
+                        "Éxito",
+                        JOptionPane.INFORMATION_MESSAGE);
+                // Actualizar la interfaz
+                repaint();
+                revalidate();
+            } catch (Exception ex) {
+                JOptionPane.showMessageDialog(this,
+                        "Error al importar los datos: " + ex.getMessage(),
+                        "Error",
+                        JOptionPane.ERROR_MESSAGE);
+            }
         }
     }
 }

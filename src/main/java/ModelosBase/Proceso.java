@@ -45,6 +45,10 @@ public class Proceso {
         this.actividades = actividades;
     }
 
+    public void setFechaInicio(LocalDateTime fechaInicio) {
+        this.fechaInicio = fechaInicio;
+    }
+
     public LocalDateTime getFechaInicio() {
         return fechaInicio;
     }

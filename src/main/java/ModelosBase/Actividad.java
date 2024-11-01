@@ -10,7 +10,7 @@ public class Actividad {
     private Cola<Tarea> tareas;
     private Actividad anterior;
     private Actividad siguiente;
-    private final LocalDateTime fechaInicio;
+    private LocalDateTime fechaInicio;
 
     public Actividad(String nombre, String descripcion, boolean obligatoria) {
         this.nombre = nombre;
@@ -19,7 +19,9 @@ public class Actividad {
         this.tareas = new Cola<>();
         this.fechaInicio = LocalDateTime.now();
     }
-
+    public void setFechaInicio(LocalDateTime fechaInicio) {
+        this.fechaInicio = fechaInicio;
+    }
     public void agregarTarea(Tarea tarea){
         tareas.encolar(tarea);
     }
