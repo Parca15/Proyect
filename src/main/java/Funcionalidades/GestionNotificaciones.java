@@ -11,7 +11,6 @@ import ModelosBase.Tarea;
 import jakarta.mail.MessagingException;
 
 import java.io.BufferedReader;
-import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.time.LocalDateTime;
@@ -106,7 +105,7 @@ public class GestionNotificaciones {
                 FileReader fr = new FileReader("src/main/resources/Login_Archivo/UsuarioActual");
                 BufferedReader br = new BufferedReader(fr);
                 correo = br.readLine();
-                emailSender.sendEmail(correo, titulo, mensaje);
+                emailSender.enviarEmail(correo, titulo, mensaje);
             } catch (IOException | MessagingException e) {
                 throw new RuntimeException(e);
             }
