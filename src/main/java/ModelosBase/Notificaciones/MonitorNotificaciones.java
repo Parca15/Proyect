@@ -34,12 +34,11 @@ public class MonitorNotificaciones {
     }
 
     private void iniciarMonitoreo() {
-        scheduler.scheduleAtFixedRate(this::verificarEstados, 0, 10, TimeUnit.MINUTES);
+        scheduler.scheduleAtFixedRate(this::verificarEstados, 0, 15, TimeUnit.MINUTES);
     }
 
     public void registrarProceso(Proceso proceso) {
         procesosActivos.add(proceso);
-        // Usar el método público de GestionNotificaciones
         GestionNotificaciones.getInstance().notificarProcesoIniciado(proceso);
     }
 
@@ -67,6 +66,7 @@ public class MonitorNotificaciones {
 
             if (minutosRestantes <= 0 && tarea.isObligatoria()) {
                 GestionNotificaciones.getInstance().notificarTareaVencida(tarea, actividad, proceso);
+                tareasCopia.desencolar();
                 hayTareasVencidas = true;
             }
             else if (minutosRestantes > 0 && minutosRestantes <= 30 && tarea.isObligatoria()) {

@@ -35,7 +35,7 @@ public class EmailSender {
         return email != null && EMAIL_PATTERN.matcher(email).matches();
     }
 
-    public void sendEmail(String destinatario, String asunto, String mensaje) throws MessagingException {
+    public void enviarEmail(String destinatario, String asunto, String mensaje) throws MessagingException {
         // Validar el email del remitente
         if (!isValidEmail(username)) {
             throw new MessagingException("Dirección de correo del remitente inválida: " + username);
