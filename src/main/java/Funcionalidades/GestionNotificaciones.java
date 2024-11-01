@@ -20,6 +20,7 @@ public class GestionNotificaciones {
     private Consumer<Notificacion> manejoNotificacion;
     private EmailSender emailSender = EmailSender.getInstance();
     private BetterEmailSender betterEmailSender = BetterEmailSender.getInstance();
+    private WhatsAppSender whatsAppSender = WhatsAppSender.getInstance();
 
     private GestionNotificaciones() {
         this.notificaciones = new Cola<>();
@@ -98,8 +99,43 @@ public class GestionNotificaciones {
         notificaciones.encolar(notificacion);
         if (manejoNotificacion != null) {
             manejoNotificacion.accept(notificacion);
-            betterEmailSender.enviarMailAsync(titulo, mensaje);
+            enviarNotificaciones(titulo, mensaje);
         }
+    }
+
+    private void enviarNotificaciones(String titulo, String mensaje) {
+        betterEmailSender.enviarMailAsync(titulo, mensaje);
+
+        new Thread(() -> {
+            try {
+                String telefono = "";
+                String nombre = "";
+                try (BufferedReader br = new BufferedReader(new FileReader("src/main/resources/Login_Archivo/UsuarioActual"))) {
+                    br.readLine();
+                    telefono = br.readLine();
+                    nombre = br.readLine();
+                }
+
+                if (telefono != null && !telefono.isEmpty()) {
+                    if (!telefono.startsWith("57")) {
+                        telefono = "57" + telefono;
+                    }
+
+                    whatsAppSender.enviarMensaje(
+                            telefono,
+                            titulo,  // Texto del header
+                            nombre, // Nombre del usuario
+                            mensaje  // Mensaje del body
+                    );
+                }
+            } catch (IOException e) {
+                System.err.println("Error al leer el número de teléfono: " + e.getMessage());
+                e.printStackTrace();
+            } catch (Exception e) {
+                System.err.println("Error al enviar mensaje de WhatsApp: " + e.getMessage());
+                e.printStackTrace();
+            }
+        }).start();
     }
 
     public Cola<Notificacion> obtenerNotificaciones() {

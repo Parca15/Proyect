@@ -433,37 +433,38 @@ public class InterLogin extends JFrame {
         String documento = emailField.getText();
         String password = new String(passwordField.getPassword());
 
-        if(Objects.equals(Login.verifyUser(documento, password), "admin")) {
-            try {
-                File directory = new File("src/main/resources/Login_Archivo");
-                File file = new File(directory, "UsuarioActual");
-                try (BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter(file))) {
-                    bufferedWriter.write(Login.extraerCorreo(documento, password, "Login_Archivo/Admin"));
-                    bufferedWriter.flush();
-                }
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+        String userType = Login.verifyUser(documento, password);
+        if(Objects.equals(userType, "admin") || Objects.equals(userType, "user")) {
+            escribirUsuarioActual(documento, password, userType);
             MainApplication mainGUI = new MainApplication();
             mainGUI.setVisible(true);
             this.dispose();
-        } else if(Objects.equals(Login.verifyUser(documento, password), "user")) {
-            try {
-                File directory = new File("src/main/resources/Login_Archivo");
-                File file = new File(directory, "UsuarioActual");
-                try (BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter(file))) {
-                    bufferedWriter.write(Login.extraerCorreo(documento, password, "Login_Archivo/Usuarios"));
-                    bufferedWriter.flush();
-                }
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-            MainApplication mainGUI = new MainApplication();
-            mainGUI.setVisible(true);
-            this.dispose();
-
         } else {
             showErrorDialog("Credenciales incorrectas. Intente nuevamente.");
+        }
+    }
+
+    private void escribirUsuarioActual(String documento, String password, String userType) {
+        try {
+            File directory = new File("src/main/resources/Login_Archivo");
+            File file = new File(directory, "UsuarioActual");
+
+            String resourcePath = "Login_Archivo/" + (userType.equals("admin") ? "Admin" : "Usuarios");
+
+            try (BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter(file))) {
+                String correo = Login.extraerCorreo(documento, password, resourcePath);
+                String telefono = Login.extraerTelefono(documento, password, resourcePath);
+                String nombre = Login.extraerNombre(documento, password, resourcePath);
+
+                bufferedWriter.write(correo);
+                bufferedWriter.newLine();
+                bufferedWriter.write(telefono);
+                bufferedWriter.newLine();
+                bufferedWriter.write(nombre);
+                bufferedWriter.flush();
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
 

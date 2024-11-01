@@ -6,7 +6,7 @@ import org.json.JSONObject;
 
 public class WhatsAppSender {
     private final String phoneNumberId = "471467826048910";
-    private final String accessToken = "EAAG1gibF9ZA4BOZCAP3VdqWUZBEmoPVA97K2ycBpNHMRFIHabnRsZAqKfIhvDSnmyLfZBnK3DOCGTzZAQMqZCCnExUsRpyxJ9ZALVtpOAPBNOFMbyBu2yXMCcHeoZA7WEzgoFYSZBESqVFtE5oVXU6KzsRBIwuHl1Uvb3BVtN71Eo7zfuiq89oLisRWnBHQhB0xsZCqls9QBXaliVE73hx6Keh63ljevgZDZD";
+    private final String accessToken = "EAAG1gibF9ZA4BOwpGRWlI6qvwahMrBn7EVXPEgl3rzAOGdZBtbmjk2g2Ge3WGbaPgTJ0jDJFUz3ghoQT06XHuZAhK7n4IhwClsbvGwmhqmjqWr0WqWn6kisYrrzeUML890wDsCZB5CKnylPDE4CGIDTZC6j8vosmkD8y3FxVjJnF9Na0Aa1EkgxsExZBICN9ZCkG32MkZCOZAiDQZBhn01zlmjAuZAYhwZDZD";
     private final OkHttpClient client;
     private static WhatsAppSender instance;
 
@@ -21,9 +21,9 @@ public class WhatsAppSender {
         return instance;
     }
 
-    public void enviarMensaje(String recipientNumber, String headerText, String userName, String bodyMessage) {
+    public void enviarMensaje(String destinatario, String titulo, String usuario, String mensaje) {
         try {
-            JSONObject message = createMessageObject(recipientNumber, headerText, userName, bodyMessage);
+            JSONObject message = createMessageObject(destinatario, titulo, usuario, mensaje);
             sendRequest(message);
         } catch (Exception e) {
             System.err.println("Error al enviar el mensaje: " + e.getMessage());
@@ -91,10 +91,6 @@ public class WhatsAppSender {
         if (!response.isSuccessful()) {
             System.err.println("Error al enviar el mensaje. Código: " + response.code());
             System.err.println("Detalles: " + responseBody);
-            return;
         }
-
-        System.out.println("¡Mensaje enviado con éxito!");
-        System.out.println("Respuesta: " + responseBody);
     }
 }
