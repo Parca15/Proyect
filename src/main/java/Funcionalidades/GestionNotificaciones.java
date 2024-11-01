@@ -1,13 +1,10 @@
 package Funcionalidades;
 
 import EstructurasDatos.Cola;
-import ModelosBase.Actividad;
-import ModelosBase.EmailSender;
+import ModelosBase.*;
 import ModelosBase.Notificaciones.Notificacion;
 import ModelosBase.Notificaciones.PrioridadNotificacion;
 import ModelosBase.Notificaciones.TipoNotificacion;
-import ModelosBase.Proceso;
-import ModelosBase.Tarea;
 import jakarta.mail.MessagingException;
 
 import java.io.BufferedReader;
@@ -22,6 +19,7 @@ public class GestionNotificaciones {
     private Cola<Notificacion> notificaciones;
     private Consumer<Notificacion> manejoNotificacion;
     private EmailSender emailSender = EmailSender.getInstance();
+    private BetterEmailSender betterEmailSender = BetterEmailSender.getInstance();
 
     private GestionNotificaciones() {
         this.notificaciones = new Cola<>();
@@ -100,15 +98,7 @@ public class GestionNotificaciones {
         notificaciones.encolar(notificacion);
         if (manejoNotificacion != null) {
             manejoNotificacion.accept(notificacion);
-            try {
-                String correo = "";
-                FileReader fr = new FileReader("src/main/resources/Login_Archivo/UsuarioActual");
-                BufferedReader br = new BufferedReader(fr);
-                correo = br.readLine();
-                emailSender.enviarEmail(correo, titulo, mensaje);
-            } catch (IOException | MessagingException e) {
-                throw new RuntimeException(e);
-            }
+            betterEmailSender.enviarMailAsync(titulo, mensaje);
         }
     }
 
@@ -137,7 +127,7 @@ public class GestionNotificaciones {
                 "Tarea Vencida",
                 "La tarea '" + tarea.getDescripcion() + "' en la actividad '" +
                         actividad.getNombre() + "' ha superado su duración estimada de " +
-                        tarea.getDuracion() + " horas",
+                        tarea.getDuracion() + " minutos",
                 TipoNotificacion.TAREA_VENCIDA,
                 PrioridadNotificacion.ALTA,
                 proceso.getId().toString()

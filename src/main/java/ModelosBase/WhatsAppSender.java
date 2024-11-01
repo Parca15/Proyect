@@ -8,9 +8,17 @@ public class WhatsAppSender {
     private final String phoneNumberId = "471467826048910";
     private final String accessToken = "EAAG1gibF9ZA4BOZCAP3VdqWUZBEmoPVA97K2ycBpNHMRFIHabnRsZAqKfIhvDSnmyLfZBnK3DOCGTzZAQMqZCCnExUsRpyxJ9ZALVtpOAPBNOFMbyBu2yXMCcHeoZA7WEzgoFYSZBESqVFtE5oVXU6KzsRBIwuHl1Uvb3BVtN71Eo7zfuiq89oLisRWnBHQhB0xsZCqls9QBXaliVE73hx6Keh63ljevgZDZD";
     private final OkHttpClient client;
+    private static WhatsAppSender instance;
 
     public WhatsAppSender() {
         this.client = new OkHttpClient();
+    }
+
+    public static WhatsAppSender getInstance() {
+        if (instance == null) {
+            instance = new WhatsAppSender();
+        }
+        return instance;
     }
 
     public void enviarMensaje(String recipientNumber, String headerText, String userName, String bodyMessage) {
