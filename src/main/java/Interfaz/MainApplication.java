@@ -46,18 +46,25 @@ public class MainApplication extends JFrame {
         UIManager.put("TabbedPane.selectedForeground", Color.white);
         UIManager.put("TabbedPane.contentAreaColor", colorFondoPrincipal);
 
-        // Panel central para pestañas de actividades y tareas
+        // Panel central para pestañas de dashboard, actividades y tareas
         JTabbedPane centerTabbedPane = new JTabbedPane();
         centerTabbedPane.setBackground(colorSecundario);
         centerTabbedPane.setForeground(colorTexto);
 
+        // Crear e inicializar el panel de dashboard
+        DashboardPanel dashboardPanel = new DashboardPanel(gestionProcesos);
+        dashboardPanel.setBackground(colorFondoPrincipal);
+
+        // Crear los paneles de actividades y tareas
         ActividadPanel actividadPanel = new ActividadPanel(gestionActividades, procesoPanel);
         TareaPanel tareaPanel = new TareaPanel(gestionTareas, gestionConsultas, procesoPanel);
 
-        // Personalizar los paneles de actividades y tareas
+        // Personalizar los paneles
         actividadPanel.setBackground(colorFondoPrincipal);
         tareaPanel.setBackground(colorFondoPrincipal);
 
+        // Agregar las pestañas al TabbedPane
+        centerTabbedPane.addTab("Dashboard", new ImageIcon(), dashboardPanel, "Vista general del sistema");
         centerTabbedPane.addTab("Actividades", actividadPanel);
         centerTabbedPane.addTab("Tareas", tareaPanel);
 
@@ -74,6 +81,11 @@ public class MainApplication extends JFrame {
                 } else {
                     centerTabbedPane.setBackgroundAt(i, colorSecundario);
                 }
+            }
+
+            // Actualizar estadísticas cuando se selecciona la pestaña del dashboard
+            if (selectedIndex == 0) {
+                dashboardPanel.actualizarEstadisticas();
             }
         });
         centerTabbedPane.setFont(new Font("Arial", Font.BOLD, 12));
