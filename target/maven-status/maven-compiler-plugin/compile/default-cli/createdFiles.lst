@@ -49,6 +49,7 @@ Interfaz\InterLogin$11.class
 Interfaz\InterLogin$RoundedBorder.class
 Interfaz\InterRegister$9.class
 Funcionalidades\GestionActividades.class
+App\EmailSender.class
 Interfaz\TareaPanel$7.class
 EstructurasDatos\Cola.class
 Interfaz\TareaPanel$11.class
@@ -79,6 +80,7 @@ ModelosBase\Notificaciones\MonitorNotificaciones.class
 Interfaz\ActividadPanel$RoundedBorder.class
 Interfaz\InterRegister$RoundedBorder.class
 Interfaz\TareaPanel$8.class
+App\EmailSender$1.class
 Interfaz\ActividadPanel$1.class
 Interfaz\InterRegister$5.class
 Interfaz\ActividadPanel$2.class
