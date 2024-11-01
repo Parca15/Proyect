@@ -7,6 +7,7 @@ import javax.swing.text.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.io.*;
+import java.util.Objects;
 import javax.swing.border.*;
 
 public class InterLogin extends JFrame {
@@ -432,11 +433,35 @@ public class InterLogin extends JFrame {
         String documento = emailField.getText();
         String password = new String(passwordField.getPassword());
 
-        Login login = new Login();
-        if (login.verifyUser(documento, password) != null) {
+        if(Objects.equals(Login.verifyUser(documento, password), "admin")) {
+            try {
+                File directory = new File("src/main/resources/Login_Archivo");
+                File file = new File(directory, "UsuarioActual");
+                try (BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter(file))) {
+                    bufferedWriter.write(Login.extraerCorreo(documento, password, "Login_Archivo/Admin"));
+                    bufferedWriter.flush();
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
             MainApplication mainGUI = new MainApplication();
             mainGUI.setVisible(true);
             this.dispose();
+        } else if(Objects.equals(Login.verifyUser(documento, password), "user")) {
+            try {
+                File directory = new File("src/main/resources/Login_Archivo");
+                File file = new File(directory, "UsuarioActual");
+                try (BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter(file))) {
+                    bufferedWriter.write(Login.extraerCorreo(documento, password, "Login_Archivo/Usuarios"));
+                    bufferedWriter.flush();
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            MainApplication mainGUI = new MainApplication();
+            mainGUI.setVisible(true);
+            this.dispose();
+
         } else {
             showErrorDialog("Credenciales incorrectas. Intente nuevamente.");
         }

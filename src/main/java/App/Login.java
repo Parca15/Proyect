@@ -34,4 +34,23 @@ public class Login {
         }
         return false;
     }
+
+    public static String extraerCorreo(String usuario, String contraseña, String resourcePath) {
+        String correo = "";
+        if (isUserInFile(usuario, contraseña, resourcePath)) {
+            try (InputStream inputStream = Login.class.getClassLoader().getResourceAsStream(resourcePath);
+                 BufferedReader br = new BufferedReader(new InputStreamReader(inputStream))) {
+                String line;
+                while ((line = br.readLine()) != null) {
+                    String[] credentials = line.split("@@");
+                    if (credentials[2].trim().equals(usuario) && credentials[3].trim().equals(contraseña)) {
+                        correo = credentials[4];
+                    }
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        return correo;
+    }
 }
