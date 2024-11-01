@@ -62,7 +62,7 @@ public class DashboardPanel extends JPanel {
         btnActualizar = new JButton("Actualizar Dashboard");
         btnActualizar.setFont(new Font("Arial", Font.BOLD, 14));
         btnActualizar.setBackground(new Color(139, 92, 246));
-        btnActualizar.setForeground(Color.WHITE);
+        btnActualizar.setForeground(Color.black);
         btnActualizar.setFocusPainted(false);
         btnActualizar.setBorder(BorderFactory.createLineBorder(new Color(167, 139, 250), 2));
         btnActualizar.setCursor(new Cursor(Cursor.HAND_CURSOR));

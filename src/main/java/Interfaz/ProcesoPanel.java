@@ -23,6 +23,8 @@
         private Color secondaryColor = new Color(138, 43, 226);
         private Color hoverColor = new Color(123, 104, 238);
 
+        private int hoveredIndex = -1;
+
         public ProcesoPanel(GestionProcesos gestionProcesos) {
             this.gestionProcesos = gestionProcesos;
             setLayout(new BorderLayout());
@@ -96,6 +98,14 @@
             procesosList = new JList<>(procesosListModel);
             procesosList.setCellRenderer(new CustomListCellRenderer());
             procesosList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+
+            procesosList.addMouseListener(new MouseAdapter() {
+                @Override
+                public void mouseExited(MouseEvent e) {
+                    hoveredIndex = -1;
+                    procesosList.repaint();
+                }
+            });
 
             JScrollPane scrollPane = new JScrollPane(procesosList) {
                 @Override
@@ -305,12 +315,62 @@
             @Override
             public Component getListCellRendererComponent(JList<?> list, Object value,
                                                           int index, boolean isSelected, boolean cellHasFocus) {
-                Component c = super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
-                setOpaque(isSelected);
-                setBackground(isSelected ? new Color(255, 255, 255, 50) : new Color(0, 0, 0, 0));
-                setForeground(Color.black);
-                setBorder(BorderFactory.createEmptyBorder(5, 10, 5, 10));
-                return c;
+                JLabel label = (JLabel) super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
+
+                // Configurar el aspecto base del label
+                label.setOpaque(true);
+                label.setBorder(BorderFactory.createEmptyBorder(8, 12, 8, 12));
+                label.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+
+                // Panel personalizado para el fondo con sombra
+                JPanel panel = new JPanel() {
+                    @Override
+                    protected void paintComponent(Graphics g) {
+                        Graphics2D g2d = (Graphics2D) g.create();
+                        g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                        g2d.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
+
+                        // Color de fondo base
+                        Color backgroundColor = new Color(255, 255, 255, 40);
+
+                        // Modificar color si está seleccionado o con hover
+                        if (isSelected) {
+                            backgroundColor = new Color(255, 255, 255, 80);
+                        } else if (index == hoveredIndex) {
+                            backgroundColor = new Color(255, 255, 255, 60);
+                        }
+
+                        // Dibujar el fondo redondeado
+                        g2d.setColor(backgroundColor);
+                        g2d.fillRoundRect(4, 4, getWidth() - 8, getHeight() - 8, 10, 10);
+
+                        // Agregar sombra si está con hover o seleccionado
+                        if (index == hoveredIndex || isSelected) {
+                            // Sombra exterior
+                            for (int i = 0; i < 4; i++) {
+                                g2d.setColor(new Color(0, 0, 0, 10 - (i * 2)));
+                                g2d.drawRoundRect(4 - i, 4 - i, getWidth() - 8 + (i * 2),
+                                        getHeight() - 8 + (i * 2), 10, 10);
+                            }
+                        }
+
+                        g2d.dispose();
+                    }
+                };
+
+                // Configurar el panel
+                panel.setLayout(new BorderLayout());
+                panel.setOpaque(false);
+                panel.add(label);
+
+                // Configurar colores del texto
+                if (isSelected) {
+                    label.setForeground(Color.WHITE);
+                } else {
+                    label.setForeground(Color.black);
+                }
+
+                return panel;
             }
         }
 
