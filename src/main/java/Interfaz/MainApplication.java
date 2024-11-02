@@ -12,6 +12,7 @@ import java.util.UUID;
 public class MainApplication extends JFrame {
     private final GestionProcesos gestionProcesos;
     private final ExcelDataHandler excelHandler;
+    private ProcesoTreePanel procesoTreePanel;
 
     public MainApplication() {
         super("Sistema de Gestión de Procesos");
@@ -66,12 +67,17 @@ public class MainApplication extends JFrame {
         ActividadPanel actividadPanel = new ActividadPanel(gestionActividades, procesoPanel);
         TareaPanel tareaPanel = new TareaPanel(gestionTareas, gestionConsultas, procesoPanel);
 
+        // Crear el nuevo ProcesoTreePanel
+        procesoTreePanel = new ProcesoTreePanel(gestionProcesos);
+        procesoTreePanel.setBackground(colorFondoPrincipal);
+
         // Personalizar los paneles
         actividadPanel.setBackground(colorFondoPrincipal);
         tareaPanel.setBackground(colorFondoPrincipal);
 
         // Agregar las pestañas
         centerTabbedPane.addTab("Dashboard", new ImageIcon(), dashboardPanel, "Vista general del sistema");
+        centerTabbedPane.addTab("Árbol de Procesos", new ImageIcon(), procesoTreePanel, "Vista jerárquica de procesos");
         centerTabbedPane.addTab("Actividades", actividadPanel);
         centerTabbedPane.addTab("Tareas", tareaPanel);
 
@@ -92,6 +98,8 @@ public class MainApplication extends JFrame {
 
             if (selectedIndex == 0) {
                 dashboardPanel.actualizarEstadisticas();
+            } else if (selectedIndex == 1) {
+                procesoTreePanel.actualizarArbol();
             }
         });
         centerTabbedPane.setFont(new Font("Arial", Font.BOLD, 12));
@@ -115,6 +123,7 @@ public class MainApplication extends JFrame {
         }
     }
 
+    // Los métodos restantes permanecen igual...
     private JMenuBar crearMenuBar(Color colorSecundario, Color colorTexto) {
         JMenuBar menuBar = new JMenuBar();
         menuBar.setBackground(colorSecundario);
