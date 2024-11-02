@@ -22,7 +22,7 @@
         private final JButton crearButton;
         private final JButton buscarButton;
         private final JButton calcularButton;
-        private final JLabel resultadoDuracion;
+        private final JTextArea resultadosCalculo;
 
         // Colores consistentes con ActividadPanel
         private Color primaryColor = new Color(147, 112, 219);
@@ -49,7 +49,8 @@
             crearButton = createStyledButton("Crear Tarea");
             buscarButton = createStyledButton("Buscar");
             calcularButton = createStyledButton("Calcular");
-            resultadoDuracion = createStyledLabel();
+            resultadosCalculo = createStyledTextArea();
+            resultadosCalculo.setEditable(false);
 
             // Panel principal con degradado
             JPanel mainPanel = new JPanel() {
@@ -173,7 +174,12 @@
 
             calculoPanel.add(calcularButton);
             calculoPanel.add(Box.createVerticalStrut(20));
-            calculoPanel.add(resultadoDuracion);
+
+            JScrollPane scrollPaneCalculo = new JScrollPane(resultadosCalculo);
+            scrollPaneCalculo.setOpaque(false);
+            scrollPaneCalculo.getViewport().setOpaque(false);
+            scrollPaneCalculo.setBorder(new InterRegister.RoundedBorder(20));
+            calculoPanel.add(scrollPaneCalculo);
 
             // Hacer transparentes los paneles contenedores en calculoPanel
             for (Component comp : calculoPanel.getComponents()) {
@@ -295,8 +301,8 @@
             JComponent editor = spinner.getEditor();
             if (editor instanceof JSpinner.DefaultEditor) {
                 JTextField tf = ((JSpinner.DefaultEditor) editor).getTextField();
-                tf.setForeground(Color.WHITE);
-                tf.setCaretColor(Color.WHITE);
+                tf.setForeground(Color.black);
+                tf.setCaretColor(Color.black);
                 tf.setOpaque(false);
                 tf.setBorder(BorderFactory.createEmptyBorder(4, 10, 4, 10));
             }
@@ -320,7 +326,7 @@
             };
 
             comboBox.setOpaque(false);
-            comboBox.setForeground(Color.WHITE);
+            comboBox.setForeground(Color.black);
             comboBox.setFont(new Font("Segoe UI", Font.PLAIN, 14));
             comboBox.setBorder(new InterRegister.RoundedBorder(20));
 
@@ -415,7 +421,7 @@
             wrapper.setLayout(new BoxLayout(wrapper, BoxLayout.Y_AXIS));
 
             JLabel label = new JLabel(labelText);
-            label.setForeground(Color.black);
+            label.setForeground(Color.WHITE);
             label.setFont(new Font("Segoe UI", Font.BOLD, 12));
             label.setAlignmentX(Component.LEFT_ALIGNMENT);
 
@@ -484,7 +490,7 @@
             calcularButton.addActionListener(e -> {
                 try {
                     GestionConsultas.TiempoProceso tiempo = controller.calcularDuracionProceso();
-                    resultadoDuracion.setText(String.format(
+                    resultadosCalculo.setText(String.format(
                             "Duración mínima: %d minutos\nDuración máxima: %d minutos",
                             tiempo.getTiempoMinimo(),
                             tiempo.getTiempoMaximo()
