@@ -1,5 +1,6 @@
 package Funcionalidades;
 
+import EstructurasDatos.Cola;
 import EstructurasDatos.Nodo;
 import Interfaz.GestorNotificacionesSwing;
 import ModelosBase.Actividad;
@@ -7,7 +8,9 @@ import ModelosBase.Notificaciones.MonitorNotificaciones;
 import ModelosBase.Notificaciones.PrioridadNotificacion;
 import ModelosBase.Notificaciones.TipoNotificacion;
 import ModelosBase.Proceso;
+import ModelosBase.Tarea;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -126,11 +129,12 @@ public class GestionActividades {
         return null;
     }
 
-    public void intercambiarActividades(UUID id, String nombre1, String nombre2, boolean selected) {
+    public void intercambiarActividades(UUID id, String nombre1, String nombre2, boolean intercambiarTareas) {
         try {
             if (nombre1.equals(nombre2)) {
                 throw new IllegalArgumentException("Los nombres son iguales. No se puede realizar el intercambio.");
             }
+
             Actividad actividad1 = buscarActividadPorNombre(id, nombre1);
             Actividad actividad2 = buscarActividadPorNombre(id, nombre2);
 
@@ -138,17 +142,89 @@ public class GestionActividades {
                 throw new IllegalStateException("Una o ambas actividades no existen.");
             }
 
+            // Guardar referencias a las actividades adyacentes originales
+            Actividad anteriorAct1 = actividad1.getAnterior();
+            Actividad siguienteAct1 = actividad1.getSiguiente();
+            Actividad anteriorAct2 = actividad2.getAnterior();
+            Actividad siguienteAct2 = actividad2.getSiguiente();
+
+            // Intercambiar los enlaces de las actividades adyacentes
+            // Caso especial: actividades adyacentes
+            if (actividad1.getSiguiente() == actividad2) {
+                // actividad1 -> actividad2
+                actividad1.setAnterior(actividad2);
+                actividad1.setSiguiente(siguienteAct2);
+                actividad2.setAnterior(anteriorAct1);
+                actividad2.setSiguiente(actividad1);
+
+                if (anteriorAct1 != null) anteriorAct1.setSiguiente(actividad2);
+                if (siguienteAct2 != null) siguienteAct2.setAnterior(actividad1);
+            } else if (actividad2.getSiguiente() == actividad1) {
+                // actividad2 -> actividad1
+                actividad2.setAnterior(actividad1);
+                actividad2.setSiguiente(siguienteAct1);
+                actividad1.setAnterior(anteriorAct2);
+                actividad1.setSiguiente(actividad2);
+
+                if (anteriorAct2 != null) anteriorAct2.setSiguiente(actividad1);
+                if (siguienteAct1 != null) siguienteAct1.setAnterior(actividad2);
+            } else {
+                // Caso general: actividades no adyacentes
+                actividad1.setAnterior(anteriorAct2);
+                actividad1.setSiguiente(siguienteAct2);
+                actividad2.setAnterior(anteriorAct1);
+                actividad2.setSiguiente(siguienteAct1);
+
+                if (anteriorAct1 != null) anteriorAct1.setSiguiente(actividad2);
+                if (siguienteAct1 != null) siguienteAct1.setAnterior(actividad2);
+                if (anteriorAct2 != null) anteriorAct2.setSiguiente(actividad1);
+                if (siguienteAct2 != null) siguienteAct2.setAnterior(actividad1);
+            }
+
+            // Intercambiar datos básicos
             String tempNombre = actividad1.getNombre();
             String tempDescripcion = actividad1.getDescripcion();
             boolean tempObligatoria = actividad1.isObligatoria();
+            LocalDateTime tempFechaInicio = actividad1.getFechaInicio();
 
             actividad1.setNombre(actividad2.getNombre());
             actividad1.setDescripcion(actividad2.getDescripcion());
             actividad1.setObligatoria(actividad2.isObligatoria());
+            actividad1.setFechaInicio(actividad2.getFechaInicio());
 
             actividad2.setNombre(tempNombre);
             actividad2.setDescripcion(tempDescripcion);
             actividad2.setObligatoria(tempObligatoria);
+            actividad2.setFechaInicio(tempFechaInicio);
+
+            // Intercambiar tareas si se solicita
+            if (intercambiarTareas) {
+                // Crear copias temporales de las colas de tareas
+                Cola<Tarea> tareasAct1 = new Cola<>();
+                Cola<Tarea> tareasAct2 = new Cola<>();
+
+                // Copiar las tareas de actividad1
+                Cola<Tarea> colaTemporal1 = actividad1.getTareas();
+                while (!colaTemporal1.estaVacia()) {
+                    Tarea tarea = colaTemporal1.desencolar();
+                    tareasAct1.encolar(new Tarea(tarea));  // Asumiendo que Tarea tiene un constructor de copia
+                }
+
+                // Copiar las tareas de actividad2
+                Cola<Tarea> colaTemporal2 = actividad2.getTareas();
+                while (!colaTemporal2.estaVacia()) {
+                    Tarea tarea = colaTemporal2.desencolar();
+                    tareasAct2.encolar(new Tarea(tarea));  // Asumiendo que Tarea tiene un constructor de copia
+                }
+
+                // Asignar las tareas intercambiadas
+                actividad1.setTareas(tareasAct2);
+                actividad2.setTareas(tareasAct1);
+
+                // Agregar log para verificar el intercambio
+                System.out.println("Intercambio de tareas realizado entre " +
+                        actividad1.getNombre() + " y " + actividad2.getNombre());
+            }
 
             notificarIntercambioActividades(actividad1, actividad2, gestionProcesos.buscarProceso(id));
 
@@ -163,7 +239,6 @@ public class GestionActividades {
             throw e;
         }
     }
-
     private void notificarIntercambioActividades(Actividad actividad1, Actividad actividad2, Proceso proceso) {
         String mensaje = String.format("Actividades '%s' y '%s' intercambiadas en el proceso '%s'",
                 actividad1.getNombre(), actividad2.getNombre(), proceso.getNombre());

@@ -12,6 +12,8 @@ import java.util.UUID;
 public class MainApplication extends JFrame {
     private final GestionProcesos gestionProcesos;
     private final ExcelDataHandler excelHandler;
+    private ProcesoTreePanel procesoTreePanel;
+    private ProcesoPanel procesoPanel;
 
     public MainApplication() {
         super("Sistema de Gestión de Procesos");
@@ -42,7 +44,7 @@ public class MainApplication extends JFrame {
         setJMenuBar(menuBar);
 
         // Panel izquierdo para procesos
-        ProcesoPanel procesoPanel = new ProcesoPanel(gestionProcesos);
+        procesoPanel = new ProcesoPanel(gestionProcesos);
         JPanel leftPanel = new JPanel(new BorderLayout());
         leftPanel.add(procesoPanel, BorderLayout.CENTER);
         leftPanel.setBackground(colorSecundario);
@@ -66,14 +68,19 @@ public class MainApplication extends JFrame {
         ActividadPanel actividadPanel = new ActividadPanel(gestionActividades, procesoPanel);
         TareaPanel tareaPanel = new TareaPanel(gestionTareas, gestionConsultas, procesoPanel);
 
+        // Crear el nuevo ProcesoTreePanel
+        procesoTreePanel = new ProcesoTreePanel(gestionProcesos);
+        procesoTreePanel.setBackground(colorFondoPrincipal);
+
         // Personalizar los paneles
         actividadPanel.setBackground(colorFondoPrincipal);
         tareaPanel.setBackground(colorFondoPrincipal);
 
         // Agregar las pestañas
-        centerTabbedPane.addTab("Dashboard", new ImageIcon(), dashboardPanel, "Vista general del sistema");
         centerTabbedPane.addTab("Actividades", actividadPanel);
         centerTabbedPane.addTab("Tareas", tareaPanel);
+        centerTabbedPane.addTab("Árbol de Procesos", new ImageIcon(), procesoTreePanel, "Vista jerárquica de procesos");
+        centerTabbedPane.addTab("Dashboard", new ImageIcon(), dashboardPanel, "Vista general del sistema");
 
         // Agregar bordes
         mainPanel.setBorder(BorderFactory.createLineBorder(colorAccent, 2));
@@ -90,8 +97,10 @@ public class MainApplication extends JFrame {
                 }
             }
 
-            if (selectedIndex == 0) {
+            if (selectedIndex == 3) {
                 dashboardPanel.actualizarEstadisticas();
+            } else if (selectedIndex == 2) {
+                procesoTreePanel.actualizarArbol();
             }
         });
         centerTabbedPane.setFont(new Font("Arial", Font.BOLD, 12));
@@ -152,6 +161,17 @@ public class MainApplication extends JFrame {
         return toolBar;
     }
 
+    private void actualizarListaProcesos() {
+        // Obtener el modelo de la lista del ProcesoPanel
+        DefaultListModel<String> model = procesoPanel.getListModel();
+        model.clear(); // Limpiar la lista actual
+
+        // Obtener los procesos actualizados y añadirlos al modelo
+        for (Proceso proceso : gestionProcesos.getProcesos().values()) {
+            model.addElement(proceso.getNombre() + " (" + proceso.getId() + ")");
+        }
+    }
+
     private void exportarDatos() {
         JFileChooser fileChooser = new JFileChooser();
         fileChooser.setDialogTitle("Exportar datos a Excel");
@@ -175,7 +195,7 @@ public class MainApplication extends JFrame {
             }
 
             try {
-                excelHandler.exportarDatos(filePath);
+                excelHandler.exportarProcesoSeleccionado(filePath, procesoPanel.getSelectedProcesoId());
                 JOptionPane.showMessageDialog(this,
                         "Datos exportados exitosamente",
                         "Éxito",
@@ -207,11 +227,16 @@ public class MainApplication extends JFrame {
         if (result == JFileChooser.APPROVE_OPTION) {
             try {
                 excelHandler.importarDatos(fileChooser.getSelectedFile().getAbsolutePath());
+                // Actualizar la lista de procesos
+                actualizarListaProcesos();
+
                 JOptionPane.showMessageDialog(this,
                         "Datos importados exitosamente",
                         "Éxito",
                         JOptionPane.INFORMATION_MESSAGE);
-                // Actualizar la interfaz
+
+                // Actualizar otros componentes de la interfaz
+                procesoTreePanel.actualizarArbol();
                 repaint();
                 revalidate();
             } catch (Exception ex) {
@@ -221,5 +246,12 @@ public class MainApplication extends JFrame {
                         JOptionPane.ERROR_MESSAGE);
             }
         }
+    }
+
+    public static void main(String[] args) {
+        SwingUtilities.invokeLater(() -> {
+            MainApplication app = new MainApplication();
+            app.setVisible(true);
+        });
     }
 }

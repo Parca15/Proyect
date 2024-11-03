@@ -417,4 +417,7 @@
         public void addProcesoSelectionListener(ListSelectionListener listener) {
             procesosList.addListSelectionListener(listener);
         }
+        public DefaultListModel<String> getListModel() {
+            return procesosListModel;
+        }
     }

@@ -27,7 +27,6 @@ public class DashboardPanel extends JPanel {
     private JLabel totalActividadesValor;
     private JLabel totalTareasValor;
     private JLabel tareasObligatoriasValor;
-    private JButton btnActualizar;
 
     public DashboardPanel(GestionProcesos gestionProcesos) {
         this.gestionProcesos = gestionProcesos;
@@ -57,29 +56,6 @@ public class DashboardPanel extends JPanel {
         totalActividadesValor = (JLabel) totalActividadesPanel.getComponent(1);
         totalTareasValor = (JLabel) totalTareasPanel.getComponent(1);
         tareasObligatoriasValor = (JLabel) tareasObligatoriasPanel.getComponent(1);
-
-        // Crear botón de actualizar
-        btnActualizar = new JButton("Actualizar Dashboard");
-        btnActualizar.setFont(new Font("Arial", Font.BOLD, 14));
-        btnActualizar.setBackground(new Color(139, 92, 246));
-        btnActualizar.setForeground(Color.black);
-        btnActualizar.setFocusPainted(false);
-        btnActualizar.setBorder(BorderFactory.createLineBorder(new Color(167, 139, 250), 2));
-        btnActualizar.setCursor(new Cursor(Cursor.HAND_CURSOR));
-
-        // Efectos hover para el botón
-        btnActualizar.addMouseListener(new java.awt.event.MouseAdapter() {
-            public void mouseEntered(java.awt.event.MouseEvent evt) {
-                btnActualizar.setBackground(new Color(167, 139, 250));
-            }
-
-            public void mouseExited(java.awt.event.MouseEvent evt) {
-                btnActualizar.setBackground(new Color(139, 92, 246));
-            }
-        });
-
-        // Agregar acción al botón
-        btnActualizar.addActionListener(e -> actualizarEstadisticas());
 
         // Panel de gráficos
         chartsPanel = new JPanel(new GridLayout(1, 2, 10, 10));
@@ -120,7 +96,7 @@ public class DashboardPanel extends JPanel {
         JPanel mainPanel = new JPanel(new BorderLayout(10, 10));
         mainPanel.setBackground(new Color(111, 63, 182));
 
-        // Panel superior para título y botón
+        // Panel superior para título
         JPanel headerPanel = new JPanel(new BorderLayout(10, 10));
         headerPanel.setBackground(new Color(111, 63, 182));
         headerPanel.setBorder(BorderFactory.createEmptyBorder(0, 0, 10, 0));
@@ -130,9 +106,8 @@ public class DashboardPanel extends JPanel {
         titleLabel.setFont(new Font("Arial", Font.BOLD, 24));
         titleLabel.setForeground(Color.WHITE);
 
-        // Agregar título y botón al panel superior
+        // Agregar título al panel superior
         headerPanel.add(titleLabel, BorderLayout.CENTER);
-        headerPanel.add(btnActualizar, BorderLayout.EAST);
 
         mainPanel.add(headerPanel, BorderLayout.NORTH);
         mainPanel.add(statsPanel, BorderLayout.CENTER);
@@ -188,12 +163,6 @@ public class DashboardPanel extends JPanel {
             totalActividadesValor.setText(String.valueOf(finalTotalActividades));
             totalTareasValor.setText(String.valueOf(finalTotalTareas));
             tareasObligatoriasValor.setText(String.valueOf(finalTareasObligatorias));
-
-            // Mostrar un mensaje de confirmación
-            JOptionPane.showMessageDialog(this,
-                    "Dashboard actualizado correctamente",
-                    "Actualización Completada",
-                    JOptionPane.INFORMATION_MESSAGE);
         });
     }
 }

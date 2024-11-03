@@ -18,7 +18,7 @@ public class ActividadPanel extends JPanel {
     private final JTextArea descripcionArea;
     private final JCheckBox obligatoriaCheck;
     private final JComboBox<String> tipoInsercionCombo;
-    private final JTextField actividadPrecedenteField;
+    private final JComboBox<String> actividadPrecedenteCombo;
 
     // Colores consistentes con ProcesoPanel
     private Color primaryColor = new Color(147, 112, 219);
@@ -133,7 +133,7 @@ public class ActividadPanel extends JPanel {
         topPanel.add(tipoInsercionCombo);
         topPanel.add(Box.createVerticalStrut(15));
 
-        // Campo actividad precedente
+        // ComboBox actividad precedente
         JLabel precedenteLabel = new JLabel("Actividad Precedente");
         precedenteLabel.setFont(new Font("Segoe UI", Font.PLAIN, 14));
         precedenteLabel.setForeground(Color.WHITE);
@@ -141,10 +141,10 @@ public class ActividadPanel extends JPanel {
         topPanel.add(precedenteLabel);
         topPanel.add(Box.createVerticalStrut(10));
 
-        actividadPrecedenteField = createStyledTextField();
-        actividadPrecedenteField.setMaximumSize(new Dimension(Integer.MAX_VALUE, 40));
-        actividadPrecedenteField.setEnabled(false);
-        topPanel.add(actividadPrecedenteField);
+        actividadPrecedenteCombo = createStyledComboBox(new String[]{});
+        actividadPrecedenteCombo.setMaximumSize(new Dimension(Integer.MAX_VALUE, 40));
+        actividadPrecedenteCombo.setEnabled(false);
+        topPanel.add(actividadPrecedenteCombo);
 
         // Panel de botones
         JPanel buttonPanel = new JPanel();
@@ -166,11 +166,32 @@ public class ActividadPanel extends JPanel {
 
         // Eventos
         tipoInsercionCombo.addActionListener(e -> {
-            actividadPrecedenteField.setEnabled(tipoInsercionCombo.getSelectedIndex() == 1);
+            boolean isActividadEspecifica = tipoInsercionCombo.getSelectedIndex() == 1;
+            actividadPrecedenteCombo.setEnabled(isActividadEspecifica);
+            if (isActividadEspecifica) {
+                actualizarActividadesPrecedentes();
+            }
+        });
+
+        procesoPanel.addProcesoSelectionListener(procesoId -> {
+            if (tipoInsercionCombo.getSelectedIndex() == 1) {
+                actualizarActividadesPrecedentes();
+            }
         });
 
         crearButton.addActionListener(e -> crearActividad());
         intercambiarButton.addActionListener(e -> mostrarDialogoIntercambio());
+    }
+
+    private void actualizarActividadesPrecedentes() {
+        UUID procesoId = procesoPanel.getSelectedProcesoId();
+        actividadPrecedenteCombo.removeAllItems();
+        if (procesoId != null) {
+            List<String> actividades = gestionActividades.obtenerNombresActividades(procesoId);
+            for (String actividad : actividades) {
+                actividadPrecedenteCombo.addItem(actividad);
+            }
+        }
     }
 
     private JTextField createStyledTextField() {
@@ -235,10 +256,23 @@ public class ActividadPanel extends JPanel {
     private JComboBox<String> createStyledComboBox(String[] items) {
         JComboBox<String> comboBox = new JComboBox<>(items);
         comboBox.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-        comboBox.setForeground(Color.black);
+        comboBox.setForeground(Color.WHITE);
         comboBox.setBackground(new Color(255, 255, 255, 40));
         comboBox.setBorder(new RoundedBorder(20));
-        ((JComponent) comboBox.getRenderer()).setOpaque(false);
+
+        // Personalizar el renderizador para el color del texto
+        DefaultListCellRenderer renderer = new DefaultListCellRenderer() {
+            @Override
+            public Component getListCellRendererComponent(JList<?> list, Object value,
+                                                          int index, boolean isSelected, boolean cellHasFocus) {
+                super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
+                setForeground(Color.WHITE);
+                setBackground(isSelected ? new Color(255, 255, 255, 80) : new Color(255, 255, 255, 40));
+                setOpaque(true);
+                return this;
+            }
+        };
+        comboBox.setRenderer(renderer);
 
         return comboBox;
     }
@@ -296,7 +330,6 @@ public class ActividadPanel extends JPanel {
         }
     }
 
-    // Mantener los métodos existentes sin cambios
     private void crearActividad() {
         UUID procesoId = procesoPanel.getSelectedProcesoId();
         if (procesoId == null) {
@@ -325,9 +358,15 @@ public class ActividadPanel extends JPanel {
                     gestionActividades.insertarActividadAlFinal(procesoId, nombre, descripcion, obligatoria);
                     break;
                 case 1:
-                    String actividadPrecedente = actividadPrecedenteField.getText().trim();
-                    if (!actividadPrecedente.isEmpty()) {
+                    String actividadPrecedente = (String) actividadPrecedenteCombo.getSelectedItem();
+                    if (actividadPrecedente != null && !actividadPrecedente.isEmpty()) {
                         gestionActividades.insertarActividadDespuesDe(procesoId, actividadPrecedente, nombre, descripcion, obligatoria);
+                    } else {
+                        JOptionPane.showMessageDialog(this,
+                                "Por favor seleccione una actividad precedente",
+                                "Error",
+                                ERROR_MESSAGE);
+                        return;
                     }
                     break;
                 case 2:
@@ -335,7 +374,7 @@ public class ActividadPanel extends JPanel {
                     break;
             }
             limpiarCampos();
-            procesoPanel.notifyActividadCreated(); // Notificar que se creó una actividad
+            procesoPanel.notifyActividadCreated();
             JOptionPane.showMessageDialog(this,
                     "Actividad creada exitosamente",
                     "Éxito",
@@ -367,9 +406,8 @@ public class ActividadPanel extends JPanel {
             return;
         }
 
-        // Crear y poblar los JComboBox con las actividades
-        JComboBox<String> actividad1ComboBox = new JComboBox<>(actividades.toArray(new String[0]));
-        JComboBox<String> actividad2ComboBox = new JComboBox<>(actividades.toArray(new String[0]));
+        JComboBox<String> actividad1ComboBox = createStyledComboBox(actividades.toArray(new String[0]));
+        JComboBox<String> actividad2ComboBox = createStyledComboBox(actividades.toArray(new String[0]));
         JCheckBox intercambiarTareasCheck = new JCheckBox("Intercambiar tareas junto con las actividades");
         intercambiarTareasCheck.setForeground(Color.WHITE);
         intercambiarTareasCheck.setBackground(new Color(255, 255, 255, 40));
@@ -392,7 +430,6 @@ public class ActividadPanel extends JPanel {
         panel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
         panel.setOpaque(false);
 
-        // Crear labels estilizados
         JLabel label1 = new JLabel("Primera actividad:");
         JLabel label2 = new JLabel("Segunda actividad:");
         label1.setForeground(Color.WHITE);
@@ -400,29 +437,20 @@ public class ActividadPanel extends JPanel {
         label1.setFont(new Font("Segoe UI", Font.PLAIN, 14));
         label2.setFont(new Font("Segoe UI", Font.PLAIN, 14));
 
-        // Estilizar los ComboBox
-        actividad1ComboBox.setBackground(new Color(255, 255, 255, 40));
-        actividad2ComboBox.setBackground(new Color(255, 255, 255, 40));
-        actividad1ComboBox.setForeground(Color.WHITE);
-        actividad2ComboBox.setForeground(Color.WHITE);
-
         panel.add(label1);
         panel.add(actividad1ComboBox);
         panel.add(label2);
         panel.add(actividad2ComboBox);
         panel.add(intercambiarTareasCheck);
 
-        // Crear un JOptionPane personalizado
         JOptionPane optionPane = new JOptionPane(
                 panel,
                 JOptionPane.PLAIN_MESSAGE,
                 JOptionPane.OK_CANCEL_OPTION);
 
-        // Crear y mostrar el diálogo
         JDialog dialog = optionPane.createDialog(this, "Intercambiar Actividades");
         dialog.setBackground(new Color(147, 112, 219));
 
-        // Mostrar el diálogo y procesar el resultado
         dialog.setVisible(true);
         Object selectedValue = optionPane.getValue();
 
@@ -442,7 +470,7 @@ public class ActividadPanel extends JPanel {
                             "Éxito",
                             JOptionPane.INFORMATION_MESSAGE);
 
-                    procesoPanel.notifyActividadCreated(); // Actualizar la vista
+                    procesoPanel.notifyActividadCreated();
                 } catch (Exception ex) {
                     JOptionPane.showMessageDialog(this,
                             "Error al intercambiar actividades: " + ex.getMessage(),
@@ -462,7 +490,7 @@ public class ActividadPanel extends JPanel {
         nombreField.setText("");
         descripcionArea.setText("");
         obligatoriaCheck.setSelected(false);
-        actividadPrecedenteField.setText("");
+        actividadPrecedenteCombo.setSelectedIndex(-1);
         tipoInsercionCombo.setSelectedIndex(0);
     }
 }
