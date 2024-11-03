@@ -75,11 +75,15 @@ public class MainApplication extends JFrame {
         actividadPanel.setBackground(colorFondoPrincipal);
         tareaPanel.setBackground(colorFondoPrincipal);
 
-        // Agregar las pestañas
-        centerTabbedPane.addTab("Dashboard", new ImageIcon(), dashboardPanel, "Vista general del sistema");
-        centerTabbedPane.addTab("Árbol de Procesos", new ImageIcon(), procesoTreePanel, "Vista jerárquica de procesos");
+        // Agregar las pestañas en el nuevo orden solicitado:
+        // 1. Actividades
+        // 2. Tareas
+        // 3. Árbol de Procesos
+        // 4. Dashboard
         centerTabbedPane.addTab("Actividades", actividadPanel);
         centerTabbedPane.addTab("Tareas", tareaPanel);
+        centerTabbedPane.addTab("Árbol de Procesos", new ImageIcon(), procesoTreePanel, "Vista jerárquica de procesos");
+        centerTabbedPane.addTab("Dashboard", new ImageIcon(), dashboardPanel, "Vista general del sistema");
 
         // Agregar bordes
         mainPanel.setBorder(BorderFactory.createLineBorder(colorAccent, 2));
@@ -96,9 +100,9 @@ public class MainApplication extends JFrame {
                 }
             }
 
-            if (selectedIndex == 0) {
+            if (selectedIndex == 3) { // Cambiado a 3 porque ahora Dashboard es la última pestaña
                 dashboardPanel.actualizarEstadisticas();
-            } else if (selectedIndex == 1) {
+            } else if (selectedIndex == 2) { // Cambiado a 2 porque ahora el Árbol es la tercera pestaña
                 procesoTreePanel.actualizarArbol();
             }
         });
