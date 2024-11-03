@@ -1,6 +1,7 @@
 package Funcionalidades;
 
 import EstructurasDatos.Cola;
+import EstructurasDatos.ListaEnlazada;
 import EstructurasDatos.Nodo;
 import ModelosBase.Actividad;
 import ModelosBase.Proceso;
@@ -20,22 +21,27 @@ public class ExcelDataHandler {
         this.gestionProcesos = gestionProcesos;
     }
 
-    public void exportarDatos(String rutaArchivo) throws IOException {
+    public void exportarProcesoSeleccionado(String rutaArchivo, UUID idProceso) throws IOException {
+        Proceso procesoSeleccionado = gestionProcesos.getProcesos().get(idProceso);
+        if (procesoSeleccionado == null) {
+            throw new IllegalArgumentException("No se encontró el proceso con ID: " + idProceso);
+        }
+
         try (Workbook workbook = new XSSFWorkbook()) {
-            // Crear hoja para Procesos
-            Sheet sheetProcesos = workbook.createSheet("Procesos");
-            crearEncabezadosProcesos(sheetProcesos);
-            llenarDatosProcesos(sheetProcesos);
+            // Crear hoja para Proceso
+            Sheet sheetProceso = workbook.createSheet("Proceso");
+            crearEncabezadosProcesos(sheetProceso);
+            llenarDatosProcesoSeleccionado(sheetProceso, procesoSeleccionado);
 
             // Crear hoja para Actividades
             Sheet sheetActividades = workbook.createSheet("Actividades");
             crearEncabezadosActividades(sheetActividades);
-            llenarDatosActividades(sheetActividades);
+            llenarDatosActividadesDelProceso(sheetActividades, procesoSeleccionado);
 
             // Crear hoja para Tareas
             Sheet sheetTareas = workbook.createSheet("Tareas");
             crearEncabezadosTareas(sheetTareas);
-            llenarDatosTareas(sheetTareas);
+            llenarDatosTareasDelProceso(sheetTareas, procesoSeleccionado);
 
             // Guardar el archivo
             try (FileOutputStream fileOut = new FileOutputStream(rutaArchivo)) {
@@ -44,23 +50,84 @@ public class ExcelDataHandler {
         }
     }
 
-    public void importarDatos(String rutaArchivo) throws IOException {
-        try (FileInputStream fis = new FileInputStream(rutaArchivo);
-             Workbook workbook = new XSSFWorkbook(fis)) {
+    private void llenarDatosProcesoSeleccionado(Sheet sheet, Proceso proceso) {
+        Row row = sheet.createRow(1);
 
-            // Importar Procesos
-            Map<String, Proceso> procesosImportados = importarProcesos(workbook.getSheet("Procesos"));
+        row.createCell(0).setCellValue(proceso.getId().toString());
+        row.createCell(1).setCellValue(proceso.getNombre());
 
-            // Importar Actividades
-            Map<String, Actividad> actividadesImportadas = importarActividades(workbook.getSheet("Actividades"));
+        Cell fechaCell = row.createCell(2);
+        fechaCell.setCellValue(
+                Date.from(proceso.getFechaInicio().atZone(ZoneId.systemDefault()).toInstant())
+        );
+        CellStyle dateStyle = sheet.getWorkbook().createCellStyle();
+        dateStyle.setDataFormat(
+                sheet.getWorkbook().createDataFormat().getFormat("dd/mm/yyyy hh:mm")
+        );
+        fechaCell.setCellStyle(dateStyle);
+    }
 
-            // Importar Tareas y asociarlas a las actividades
-            importarTareas(workbook.getSheet("Tareas"), actividadesImportadas);
+    private void llenarDatosActividadesDelProceso(Sheet sheet, Proceso proceso) {
+        int rowNum = 1;
+        ListaEnlazada<Actividad> actividades = proceso.getActividades();
 
-            // Asociar actividades a procesos
-            asociarActividadesAProcesos(procesosImportados, actividadesImportadas);
+        for (int i = 0; i < actividades.getTamanio(); i++) {
+            Actividad actividad = actividades.getElementoEnPosicion(i);
+            Row row = sheet.createRow(rowNum++);
+
+            row.createCell(0).setCellValue(UUID.randomUUID().toString());
+            row.createCell(1).setCellValue(proceso.getId().toString());
+            row.createCell(2).setCellValue(actividad.getNombre());
+            row.createCell(3).setCellValue(actividad.getDescripcion());
+            row.createCell(4).setCellValue(actividad.isObligatoria());
+
+            Cell fechaCell = row.createCell(5);
+            fechaCell.setCellValue(
+                    Date.from(actividad.getFechaInicio().atZone(ZoneId.systemDefault()).toInstant())
+            );
+            CellStyle dateStyle = sheet.getWorkbook().createCellStyle();
+            dateStyle.setDataFormat(
+                    sheet.getWorkbook().createDataFormat().getFormat("dd/mm/yyyy hh:mm")
+            );
+            fechaCell.setCellStyle(dateStyle);
         }
     }
+
+    private void llenarDatosTareasDelProceso(Sheet sheet, Proceso proceso) {
+        int rowNum = 1;
+        ListaEnlazada<Actividad> actividades = proceso.getActividades();
+
+        for (int i = 0; i < actividades.getTamanio(); i++) {
+            Actividad actividad = actividades.getElementoEnPosicion(i);
+            Cola<Tarea> tareas = actividad.getTareas();
+            Nodo<Tarea> actual = tareas.getNodoPrimero();
+
+            while (actual != null) {
+                Tarea tarea = actual.getValorNodo();
+                Row row = sheet.createRow(rowNum++);
+
+                row.createCell(0).setCellValue(UUID.randomUUID().toString());
+                row.createCell(1).setCellValue(actividad.getNombre());
+                row.createCell(2).setCellValue(tarea.getDescripcion());
+                row.createCell(3).setCellValue(tarea.getDuracion());
+                row.createCell(4).setCellValue(tarea.isObligatoria());
+
+                Cell fechaCell = row.createCell(5);
+                fechaCell.setCellValue(
+                        Date.from(tarea.getFechaCreacion().atZone(ZoneId.systemDefault()).toInstant())
+                );
+                CellStyle dateStyle = sheet.getWorkbook().createCellStyle();
+                dateStyle.setDataFormat(
+                        sheet.getWorkbook().createDataFormat().getFormat("dd/mm/yyyy hh:mm")
+                );
+                fechaCell.setCellStyle(dateStyle);
+
+                actual = actual.getSiguienteNodo();
+            }
+        }
+    }
+
+
 
     private void crearEncabezadosProcesos(Sheet sheet) {
         Row headerRow = sheet.createRow(0);
@@ -89,84 +156,22 @@ public class ExcelDataHandler {
         headerRow.createCell(5).setCellValue("Fecha Creación");
     }
 
-    private void llenarDatosProcesos(Sheet sheet) {
-        int rowNum = 1;
-        for (Map.Entry<UUID, Proceso> entry : gestionProcesos.getProcesos().entrySet()) {
-            Proceso proceso = entry.getValue();
-            Row row = sheet.createRow(rowNum++);
+    public void importarDatos(String rutaArchivo) throws IOException {
+        try (FileInputStream fis = new FileInputStream(rutaArchivo);
+             Workbook workbook = new XSSFWorkbook(fis)) {
 
-            row.createCell(0).setCellValue(proceso.getId().toString());
-            row.createCell(1).setCellValue(proceso.getNombre());
-            Cell fechaCell = row.createCell(2);
-            fechaCell.setCellValue(
-                    Date.from(proceso.getFechaInicio().atZone(ZoneId.systemDefault()).toInstant())
-            );
-            CellStyle dateStyle = sheet.getWorkbook().createCellStyle();
-            dateStyle.setDataFormat(
-                    sheet.getWorkbook().createDataFormat().getFormat("dd/mm/yyyy hh:mm")
-            );
-            fechaCell.setCellStyle(dateStyle);
-        }
-    }
+            // Importar Procesos primero
+            Map<String, Proceso> procesosImportados = importarProcesos(workbook.getSheet("Proceso"));
 
-    private void llenarDatosActividades(Sheet sheet) {
-        int rowNum = 1;
-        for (Proceso proceso : gestionProcesos.getProcesos().values()) {
-            for (int i = 0; i < proceso.getActividades().getTamanio(); i++) {
-                Actividad actividad = proceso.getActividades().getElementoEnPosicion(i);
-                Row row = sheet.createRow(rowNum++);
+            // Importar Actividades y asociarlas a los procesos
+            importarActividadesYAsociar(workbook.getSheet("Actividades"), procesosImportados);
 
-                row.createCell(0).setCellValue(UUID.randomUUID().toString());  // ID único para la actividad
-                row.createCell(1).setCellValue(proceso.getId().toString());
-                row.createCell(2).setCellValue(actividad.getNombre());
-                row.createCell(3).setCellValue(actividad.getDescripcion());
-                row.createCell(4).setCellValue(actividad.isObligatoria());
+            // Importar Tareas y asociarlas a las actividades correspondientes
+            importarTareasYAsociar(workbook.getSheet("Tareas"), procesosImportados);
 
-                Cell fechaCell = row.createCell(5);
-                fechaCell.setCellValue(
-                        Date.from(actividad.getFechaInicio().atZone(ZoneId.systemDefault()).toInstant())
-                );
-                CellStyle dateStyle = sheet.getWorkbook().createCellStyle();
-                dateStyle.setDataFormat(
-                        sheet.getWorkbook().createDataFormat().getFormat("dd/mm/yyyy hh:mm")
-                );
-                fechaCell.setCellStyle(dateStyle);
-            }
-        }
-    }
-
-    private void llenarDatosTareas(Sheet sheet) {
-        int rowNum = 1;
-        for (Proceso proceso : gestionProcesos.getProcesos().values()) {
-            for (int i = 0; i < proceso.getActividades().getTamanio(); i++) {
-                Actividad actividad = proceso.getActividades().getElementoEnPosicion(i);
-
-                // Obtener las tareas de la actividad usando la cola
-                Cola<Tarea> tareas = actividad.getTareas();
-                Nodo<Tarea> actual = tareas.getNodoPrimero();
-
-                while (actual != null) {
-                    Tarea tarea = actual.getValorNodo();
-                    Row row = sheet.createRow(rowNum++);
-
-                    row.createCell(0).setCellValue(UUID.randomUUID().toString());  // ID único para la tarea
-                    row.createCell(1).setCellValue(actividad.getNombre());
-                    row.createCell(2).setCellValue(tarea.getDescripcion());
-                    row.createCell(3).setCellValue(tarea.getDuracion());
-                    row.createCell(4).setCellValue(tarea.isObligatoria());
-
-                    Cell fechaCell = row.createCell(5);
-                    fechaCell.setCellValue(
-                            Date.from(tarea.getFechaCreacion().atZone(ZoneId.systemDefault()).toInstant())
-                    );
-                    CellStyle dateStyle = sheet.getWorkbook().createCellStyle();
-                    dateStyle.setDataFormat(
-                            sheet.getWorkbook().createDataFormat().getFormat("dd/mm/yyyy hh:mm")
-                    );
-                    fechaCell.setCellStyle(dateStyle);
-
-                    actual = actual.getSiguienteNodo();
-                }
+            // Actualizar los procesos en la gestión
+            for (Proceso proceso : procesosImportados.values()) {
+                gestionProcesos.getProcesos().put(proceso.getId(), proceso);
             }
         }
     }
@@ -174,7 +179,7 @@ public class ExcelDataHandler {
     private Map<String, Proceso> importarProcesos(Sheet sheet) {
         Map<String, Proceso> procesosImportados = new HashMap<>();
         Iterator<Row> rowIterator = sheet.iterator();
-        rowIterator.next(); // Skip header row
+        rowIterator.next(); // Saltar fila de encabezados
 
         while (rowIterator.hasNext()) {
             Row row = rowIterator.next();
@@ -182,7 +187,8 @@ public class ExcelDataHandler {
             String nombre = row.getCell(1).getStringCellValue();
             Date fechaInicio = row.getCell(2).getDateCellValue();
 
-            Proceso proceso = gestionProcesos.crearProceso(nombre);
+            Proceso proceso = new Proceso(nombre);
+            proceso.setId(UUID.fromString(id)); // Mantener el mismo ID del archivo
             proceso.setFechaInicio(LocalDateTime.ofInstant(
                     fechaInicio.toInstant(),
                     ZoneId.systemDefault()
@@ -193,14 +199,18 @@ public class ExcelDataHandler {
         return procesosImportados;
     }
 
-    private Map<String, Actividad> importarActividades(Sheet sheet) {
-        Map<String, Actividad> actividadesImportadas = new HashMap<>();
+    private void importarActividadesYAsociar(Sheet sheet, Map<String, Proceso> procesosImportados) {
+        if (sheet == null) return;
+
         Iterator<Row> rowIterator = sheet.iterator();
-        rowIterator.next(); // Skip header row
+        rowIterator.next(); // Saltar fila de encabezados
+
+        Map<String, Actividad> actividadesImportadas = new HashMap<>();
 
         while (rowIterator.hasNext()) {
             Row row = rowIterator.next();
-            String id = row.getCell(0).getStringCellValue();
+            String idActividad = row.getCell(0).getStringCellValue();
+            String idProceso = row.getCell(1).getStringCellValue();
             String nombre = row.getCell(2).getStringCellValue();
             String descripcion = row.getCell(3).getStringCellValue();
             boolean obligatoria = row.getCell(4).getBooleanCellValue();
@@ -211,58 +221,51 @@ public class ExcelDataHandler {
                     fechaInicio.toInstant(),
                     ZoneId.systemDefault()
             ));
-            actividadesImportadas.put(id, actividad);
-        }
+            actividadesImportadas.put(idActividad, actividad);
 
-        return actividadesImportadas;
+            // Asociar la actividad al proceso correspondiente
+            Proceso proceso = procesosImportados.get(idProceso);
+            if (proceso != null) {
+                proceso.agregarActividad(actividad);
+            }
+        }
     }
 
-    private void importarTareas(Sheet sheet, Map<String, Actividad> actividadesImportadas) {
+    private void importarTareasYAsociar(Sheet sheet, Map<String, Proceso> procesosImportados) {
+        if (sheet == null) return;
+
         Iterator<Row> rowIterator = sheet.iterator();
-        rowIterator.next(); // Skip header row
+        rowIterator.next(); // Saltar fila de encabezados
 
         while (rowIterator.hasNext()) {
             Row row = rowIterator.next();
-            String idActividad = row.getCell(1).getStringCellValue();
+            String idTarea = row.getCell(0).getStringCellValue();
+            String nombreActividad = row.getCell(1).getStringCellValue();
             String descripcion = row.getCell(2).getStringCellValue();
             int duracion = (int) row.getCell(3).getNumericCellValue();
             boolean obligatoria = row.getCell(4).getBooleanCellValue();
             Date fechaCreacion = row.getCell(5).getDateCellValue();
 
-            Actividad actividad = actividadesImportadas.get(idActividad);
-            if (actividad != null) {
-                Tarea tarea = new Tarea(descripcion, duracion, obligatoria);
-                tarea.setFechaCreacion(LocalDateTime.ofInstant(
-                        fechaCreacion.toInstant(),
-                        ZoneId.systemDefault()
-                ));
-                actividad.agregarTarea(tarea);
-            }
-        }
-    }
+            Tarea tarea = new Tarea(descripcion, duracion, obligatoria);
+            tarea.setFechaCreacion(LocalDateTime.ofInstant(
+                    fechaCreacion.toInstant(),
+                    ZoneId.systemDefault()
+            ));
 
-    private void asociarActividadesAProcesos(
-            Map<String, Proceso> procesosImportados,
-            Map<String, Actividad> actividadesImportadas) {
-        // Crear un mapa temporal para asociar actividades con sus procesos
-        Map<String, List<Actividad>> actividadesPorProceso = new HashMap<>();
-
-        // Agrupar actividades por proceso
-        for (Map.Entry<String, Actividad> entry : actividadesImportadas.entrySet()) {
-            String idProceso = entry.getValue().getDescripcion();
-            actividadesPorProceso
-                    .computeIfAbsent(idProceso, k -> new ArrayList<>())
-                    .add(entry.getValue());
-        }
-
-        // Asociar actividades a sus respectivos procesos
-        for (Map.Entry<String, List<Actividad>> entry : actividadesPorProceso.entrySet()) {
-            Proceso proceso = procesosImportados.get(entry.getKey());
-            if (proceso != null) {
-                for (Actividad actividad : entry.getValue()) {
-                    proceso.agregarActividad(actividad);
+            // Buscar la actividad correspondiente y asociar la tarea
+            for (Proceso proceso : procesosImportados.values()) {
+                ListaEnlazada<Actividad> actividades = proceso.getActividades();
+                for (int i = 0; i < actividades.getTamanio(); i++) {
+                    Actividad actividad = actividades.getElementoEnPosicion(i);
+                    if (actividad.getNombre().equals(nombreActividad)) {
+                        actividad.agregarTarea(tarea);
+                        break;
+                    }
                 }
             }
         }
     }
+
+
+
 }
