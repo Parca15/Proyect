@@ -24,6 +24,7 @@ public class ProcesoTreePanel extends JPanel {
     private  JTextField searchField;
     private Timer updateTimer;
     private JPopupMenu popupMenu;
+    private CustomTreeCellRenderer treeCellRenderer;
 
     public ProcesoTreePanel(GestionProcesos gestionProcesos) {
         this.gestionProcesos = gestionProcesos;
@@ -67,7 +68,8 @@ public class ProcesoTreePanel extends JPanel {
         JTree newTree = new JTree(treeModel);
         newTree.setShowsRootHandles(true);
         newTree.setRootVisible(true);
-        newTree.setCellRenderer(new CustomTreeCellRenderer());
+        treeCellRenderer = new CustomTreeCellRenderer();
+        newTree.setCellRenderer(treeCellRenderer);
         newTree.addMouseListener(new TreeMouseListener());
         return newTree;
     }
@@ -113,13 +115,14 @@ public class ProcesoTreePanel extends JPanel {
 
     private void buscar() {
         String searchText = searchField.getText().toLowerCase().trim();
+        treeCellRenderer.setSearchText(searchText);
         if (searchText.isEmpty()) {
             expandirTodo(tree, false);
-            return;
+        } else {
+            expandirTodo(tree, false);
+            buscarEnNodo(rootNode, searchText);
         }
-
-        expandirTodo(tree, false);
-        buscarEnNodo(rootNode, searchText);
+        tree.repaint();
     }
 
     private boolean buscarEnNodo(DefaultMutableTreeNode node, String searchText) {
@@ -281,25 +284,85 @@ public class ProcesoTreePanel extends JPanel {
         }
     }
 
-    private static class CustomTreeCellRenderer extends DefaultTreeCellRenderer {
+    private class CustomTreeCellRenderer extends DefaultTreeCellRenderer {
+        private String searchText = "";
+
+        public void setSearchText(String text) {
+            this.searchText = text.toLowerCase().trim();
+        }
+
         @Override
         public Component getTreeCellRendererComponent(JTree tree, Object value,
                                                       boolean selected, boolean expanded,
                                                       boolean leaf, int row, boolean hasFocus) {
-            super.getTreeCellRendererComponent(tree, value, selected, expanded, leaf, row, hasFocus);
-
             DefaultMutableTreeNode node = (DefaultMutableTreeNode) value;
             Object userObject = node.getUserObject();
+            String text = userObject.toString();
 
-            if (userObject instanceof ProcesoNode) {
-                setIcon(UIManager.getIcon("FileView.directoryIcon"));
-            } else if (userObject instanceof ActividadNode) {
-                setIcon(UIManager.getIcon("FileView.fileIcon"));
-            } else if (userObject instanceof TareaNode) {
-                setIcon(UIManager.getIcon("FileView.computerIcon"));
+            // Crear un JLabel personalizado para el resaltado
+            JLabel label = new JLabel();
+            label.setOpaque(true);
+
+            // Configurar colores basados en la selección
+            if (selected) {
+                label.setBackground(getBackgroundSelectionColor());
+                label.setForeground(getTextSelectionColor());
+            } else {
+                label.setBackground(getBackgroundNonSelectionColor());
+                label.setForeground(getTextNonSelectionColor());
             }
 
-            return this;
+            // Configurar el icono basado en el tipo de nodo
+            Icon icon = null;
+            if (userObject instanceof ProcesoNode) {
+                icon = UIManager.getIcon("FileView.directoryIcon");
+            } else if (userObject instanceof ActividadNode) {
+                icon = UIManager.getIcon("FileView.fileIcon");
+            } else if (userObject instanceof TareaNode) {
+                icon = UIManager.getIcon("FileView.computerIcon");
+            }
+            label.setIcon(icon);
+
+            // Resaltar el texto si hay una búsqueda activa
+            if (!searchText.isEmpty() && text.toLowerCase().contains(searchText)) {
+                label.setText(createHighlightedText(text, searchText));
+            } else {
+                label.setText(text);
+            }
+
+            return label;
+        }
+
+        private String createHighlightedText(String text, String searchText) {
+            if (searchText.isEmpty()) return text;
+
+            // Usar HTML para resaltar el texto
+            StringBuilder result = new StringBuilder("<html>");
+            String lowerText = text.toLowerCase();
+            int searchLength = searchText.length();
+            int currentIndex = 0;
+
+            while (true) {
+                int foundIndex = lowerText.indexOf(searchText, currentIndex);
+                if (foundIndex == -1) {
+                    // Agregar el resto del texto sin resaltar
+                    result.append(text.substring(currentIndex));
+                    break;
+                }
+
+                // Agregar el texto antes del término de búsqueda
+                result.append(text.substring(currentIndex, foundIndex));
+                // Agregar el término de búsqueda resaltado
+                result.append("<span style='background-color: #FFFF00'>");
+                result.append(text.substring(foundIndex, foundIndex + searchLength));
+                result.append("</span>");
+
+                currentIndex = foundIndex + searchLength;
+            }
+
+            result.append("</html>");
+            return result.toString();
         }
     }
+
 }

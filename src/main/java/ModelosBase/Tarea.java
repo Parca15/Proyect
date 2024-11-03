@@ -115,6 +115,7 @@ public class Tarea implements Cloneable {
         this.obligatoria = obligatoria;
     }
 
+
     // Método toString para debugging
     @Override
     public String toString() {
