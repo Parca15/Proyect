@@ -2,7 +2,7 @@ package Funcionalidades;
 
 import Interfaz.GestorNotificacionesSwing;
 import ModelosBase.Actividad;
-import ModelosBase.Notificaciones.MonitorNotificaciones;
+import Notificaciones.MonitorNotificaciones;
 import ModelosBase.Proceso;
 
 import java.util.Map;

@@ -2,10 +2,9 @@ package Funcionalidades;
 
 import EstructurasDatos.Cola;
 import ModelosBase.*;
-import ModelosBase.Notificaciones.Notificacion;
-import ModelosBase.Notificaciones.PrioridadNotificacion;
-import ModelosBase.Notificaciones.TipoNotificacion;
-import jakarta.mail.MessagingException;
+import Notificaciones.Notificacion;
+import Notificaciones.PrioridadNotificacion;
+import Notificaciones.TipoNotificacion;
 
 import java.io.BufferedReader;
 import java.io.FileReader;

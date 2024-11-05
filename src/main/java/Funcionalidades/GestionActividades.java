@@ -4,9 +4,9 @@ import EstructurasDatos.Cola;
 import EstructurasDatos.Nodo;
 import Interfaz.GestorNotificacionesSwing;
 import ModelosBase.Actividad;
-import ModelosBase.Notificaciones.MonitorNotificaciones;
-import ModelosBase.Notificaciones.PrioridadNotificacion;
-import ModelosBase.Notificaciones.TipoNotificacion;
+import Notificaciones.MonitorNotificaciones;
+import Notificaciones.PrioridadNotificacion;
+import Notificaciones.TipoNotificacion;
 import ModelosBase.Proceso;
 import ModelosBase.Tarea;
 

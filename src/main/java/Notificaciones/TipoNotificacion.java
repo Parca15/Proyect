@@ -1,4 +1,4 @@
-package ModelosBase.Notificaciones;
+package Notificaciones;
 
 public enum TipoNotificacion {
     ERROR,
