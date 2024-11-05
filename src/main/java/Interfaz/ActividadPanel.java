@@ -256,7 +256,7 @@ public class ActividadPanel extends JPanel {
     private JComboBox<String> createStyledComboBox(String[] items) {
         JComboBox<String> comboBox = new JComboBox<>(items);
         comboBox.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-        comboBox.setForeground(Color.WHITE);
+        comboBox.setForeground(Color.black);
         comboBox.setBackground(new Color(255, 255, 255, 40));
         comboBox.setBorder(new RoundedBorder(20));
 
@@ -266,7 +266,7 @@ public class ActividadPanel extends JPanel {
             public Component getListCellRendererComponent(JList<?> list, Object value,
                                                           int index, boolean isSelected, boolean cellHasFocus) {
                 super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
-                setForeground(Color.WHITE);
+                setForeground(Color.black);
                 setBackground(isSelected ? new Color(255, 255, 255, 80) : new Color(255, 255, 255, 40));
                 setOpaque(true);
                 return this;

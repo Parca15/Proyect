@@ -353,7 +353,7 @@
             };
 
             checkBox.setOpaque(false);
-            checkBox.setForeground(Color.WHITE);
+            checkBox.setForeground(Color.white);
             checkBox.setFont(new Font("Segoe UI", Font.PLAIN, 14));
 
             return checkBox;

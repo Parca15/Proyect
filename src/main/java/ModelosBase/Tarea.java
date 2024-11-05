@@ -127,4 +127,8 @@ public class Tarea implements Cloneable {
                 ", subtareas=" + subtareas.size() +
                 '}';
     }
+
+    public String getNombre() {
+        return descripcion;
+    }
 }

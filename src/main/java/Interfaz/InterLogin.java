@@ -180,6 +180,13 @@ public class InterLogin extends JFrame {
         // Link "Olvidó su contraseña"
         JLabel forgetPassword = createHoverLabel("¿Olvidó su contraseña?");
         forgetPassword.setBounds(220, 300, 130, 30);
+        forgetPassword.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                InterRecuperarPassword recuperarPassword = new InterRecuperarPassword();
+                recuperarPassword.setVisible(true);
+            }
+        });
         mainPanel.add(forgetPassword);
 
         // Botón de inicio de sesión
@@ -188,12 +195,27 @@ public class InterLogin extends JFrame {
         loginButton.addActionListener(e -> handleLogin());
         mainPanel.add(loginButton);
 
-        // Links de registro
-        JLabel noAccountLabel = new JLabel("¿No tienes cuenta?");
-        noAccountLabel.setFont(new Font("Segoe UI", Font.PLAIN, 12));
-        noAccountLabel.setForeground(Color.WHITE);
-        noAccountLabel.setBounds(90, 400, 120, 30);
-        mainPanel.add(noAccountLabel);
+        JLabel changePasswordLabel = createHoverLabel("Cambiar clave");
+        changePasswordLabel.setBounds(90, 400, 120, 30);
+        changePasswordLabel.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                // Crear un nuevo JFrame para contener el CambiarClavePanel
+                JFrame frame = new JFrame("Cambiar Contraseña");
+                CambiarClavePanel cambiarClave = new CambiarClavePanel();
+
+                // Configurar el JFrame
+                frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+                frame.getContentPane().add(cambiarClave);
+                frame.setSize(400, 500);
+                frame.setLocationRelativeTo(null); // Centrar la ventana
+                frame.setVisible(true);
+
+                // Cerrar la ventana actual
+                dispose();
+            }
+        });
+        mainPanel.add(changePasswordLabel);
 
         JLabel registerLink = createHoverLabel("Registrar");
         registerLink.setBounds(210, 400, 100, 30);

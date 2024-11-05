@@ -18,15 +18,22 @@ public class DashboardPanel extends JPanel {
     private JPanel statsPanel;
     private JPanel chartsPanel;
 
-    private JPanel totalProcesosPanel;
-    private JPanel totalActividadesPanel;
-    private JPanel totalTareasPanel;
-    private JPanel tareasObligatoriasPanel;
+    private FlipPanel totalProcesosFlipPanel;
+    private FlipPanel totalActividadesFlipPanel;
+    private FlipPanel totalTareasFlipPanel;
+    private FlipPanel tareasObligatoriasFlipPanel;
 
-    private JLabel totalProcesosValor;
-    private JLabel totalActividadesValor;
-    private JLabel totalTareasValor;
-    private JLabel tareasObligatoriasValor;
+    private EstadisticaPanel totalProcesosPanel;
+    private EstadisticaPanel totalActividadesPanel;
+    private EstadisticaPanel totalTareasPanel;
+    private EstadisticaPanel tareasObligatoriasPanel;
+
+    private DetalleEstadisticaPanel detalleProcesosPanel;
+    private DetalleEstadisticaPanel detalleActividadesPanel;
+    private DetalleEstadisticaPanel detalleTareasPanel;
+    private DetalleEstadisticaPanel detalleTareasObligatoriasPanel;
+
+    private JButton btnActualizar;
 
     public DashboardPanel(GestionProcesos gestionProcesos) {
         this.gestionProcesos = gestionProcesos;
@@ -45,58 +52,63 @@ public class DashboardPanel extends JPanel {
         statsPanel = new JPanel(new GridLayout(2, 2, 10, 10));
         statsPanel.setBackground(new Color(111, 63, 182));
 
-        // Crear paneles individuales para cada estadística
-        totalProcesosPanel = crearPanelEstadistica("Total Procesos");
-        totalActividadesPanel = crearPanelEstadistica("Total Actividades");
-        totalTareasPanel = crearPanelEstadistica("Total Tareas");
-        tareasObligatoriasPanel = crearPanelEstadistica("Tareas Obligatorias");
+        // Crear paneles de estadísticas y detalles
+        totalProcesosPanel = new EstadisticaPanel("Total Procesos");
+        totalActividadesPanel = new EstadisticaPanel("Total Actividades");
+        totalTareasPanel = new EstadisticaPanel("Total Tareas");
+        tareasObligatoriasPanel = new EstadisticaPanel("Tareas Obligatorias");
 
-        // Obtener referencias a las etiquetas de valores
-        totalProcesosValor = (JLabel) totalProcesosPanel.getComponent(1);
-        totalActividadesValor = (JLabel) totalActividadesPanel.getComponent(1);
-        totalTareasValor = (JLabel) totalTareasPanel.getComponent(1);
-        tareasObligatoriasValor = (JLabel) tareasObligatoriasPanel.getComponent(1);
+        detalleProcesosPanel = new DetalleEstadisticaPanel();
+        detalleActividadesPanel = new DetalleEstadisticaPanel();
+        detalleTareasPanel = new DetalleEstadisticaPanel();
+        detalleTareasObligatoriasPanel = new DetalleEstadisticaPanel();
+
+        // Crear FlipPanels
+        totalProcesosFlipPanel = new FlipPanel(totalProcesosPanel, detalleProcesosPanel);
+        totalActividadesFlipPanel = new FlipPanel(totalActividadesPanel, detalleActividadesPanel);
+        totalTareasFlipPanel = new FlipPanel(totalTareasPanel, detalleTareasPanel);
+        tareasObligatoriasFlipPanel = new FlipPanel(tareasObligatoriasPanel, detalleTareasObligatoriasPanel);
+
+        // Crear botón de actualizar
+        btnActualizar = new JButton("Actualizar Dashboard");
+        btnActualizar.setFont(new Font("Arial", Font.BOLD, 14));
+        btnActualizar.setBackground(new Color(139, 92, 246));
+        btnActualizar.setForeground(Color.black);
+        btnActualizar.setFocusPainted(false);
+        btnActualizar.setBorder(BorderFactory.createLineBorder(new Color(167, 139, 250), 2));
+        btnActualizar.setCursor(new Cursor(Cursor.HAND_CURSOR));
+
+        // Efectos hover para el botón
+        btnActualizar.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseEntered(java.awt.event.MouseEvent evt) {
+                btnActualizar.setBackground(new Color(167, 139, 250));
+            }
+
+            public void mouseExited(java.awt.event.MouseEvent evt) {
+                btnActualizar.setBackground(new Color(139, 92, 246));
+            }
+        });
+
+        // Agregar acción al botón
+        btnActualizar.addActionListener(e -> actualizarEstadisticas());
 
         // Panel de gráficos
         chartsPanel = new JPanel(new GridLayout(1, 2, 10, 10));
         chartsPanel.setBackground(new Color(111, 63, 182));
     }
 
-    private JPanel crearPanelEstadistica(String titulo) {
-        JPanel panel = new JPanel(new GridLayout(2, 1));
-        panel.setBackground(new Color(139, 92, 246));
-        panel.setBorder(BorderFactory.createLineBorder(new Color(167, 139, 250), 2));
-
-        // Etiqueta del título
-        JLabel tituloLabel = new JLabel(titulo);
-        tituloLabel.setHorizontalAlignment(SwingConstants.CENTER);
-        tituloLabel.setForeground(Color.WHITE);
-        tituloLabel.setFont(new Font("Arial", Font.PLAIN, 14));
-
-        // Etiqueta del valor
-        JLabel valorLabel = new JLabel("0");
-        valorLabel.setHorizontalAlignment(SwingConstants.CENTER);
-        valorLabel.setForeground(Color.WHITE);
-        valorLabel.setFont(new Font("Arial", Font.BOLD, 24));
-
-        panel.add(tituloLabel);
-        panel.add(valorLabel);
-
-        return panel;
-    }
-
     private void setupLayout() {
-        // Añadir componentes al panel de estadísticas
-        statsPanel.add(totalProcesosPanel);
-        statsPanel.add(totalActividadesPanel);
-        statsPanel.add(totalTareasPanel);
-        statsPanel.add(tareasObligatoriasPanel);
+        // Añadir FlipPanels al panel de estadísticas
+        statsPanel.add(totalProcesosFlipPanel);
+        statsPanel.add(totalActividadesFlipPanel);
+        statsPanel.add(totalTareasFlipPanel);
+        statsPanel.add(tareasObligatoriasFlipPanel);
 
         // Crear panel principal
         JPanel mainPanel = new JPanel(new BorderLayout(10, 10));
         mainPanel.setBackground(new Color(111, 63, 182));
 
-        // Panel superior para título
+        // Panel superior para título y botón
         JPanel headerPanel = new JPanel(new BorderLayout(10, 10));
         headerPanel.setBackground(new Color(111, 63, 182));
         headerPanel.setBorder(BorderFactory.createEmptyBorder(0, 0, 10, 0));
@@ -106,8 +118,9 @@ public class DashboardPanel extends JPanel {
         titleLabel.setFont(new Font("Arial", Font.BOLD, 24));
         titleLabel.setForeground(Color.WHITE);
 
-        // Agregar título al panel superior
+        // Agregar título y botón al panel superior
         headerPanel.add(titleLabel, BorderLayout.CENTER);
+        headerPanel.add(btnActualizar, BorderLayout.EAST);
 
         mainPanel.add(headerPanel, BorderLayout.NORTH);
         mainPanel.add(statsPanel, BorderLayout.CENTER);
@@ -124,8 +137,21 @@ public class DashboardPanel extends JPanel {
         int totalTareas = 0;
         int tareasObligatorias = 0;
 
-        // Calcular estadísticas
+        StringBuilder detalleProcesos = new StringBuilder();
+        StringBuilder detalleActividades = new StringBuilder();
+        StringBuilder detalleTareas = new StringBuilder();
+        StringBuilder detalleTareasObligatorias = new StringBuilder();
+
+        // Calcular estadísticas y preparar detalles
+        int p = 1;
+        int a = 1;
+        int t = 1;
+
         for (Proceso proceso : procesos.values()) {
+            detalleProcesos.append(p + ". ").append(proceso.getNombre()).append("\n");
+            System.out.println("Proceso " + p + ": " + proceso.getNombre());  // Debug
+            p++;
+
             ListaEnlazada<Actividad> listaActividades = proceso.getActividades();
             if (listaActividades != null && !listaActividades.estaVacia()) {
                 Nodo<Actividad> actualActividad = listaActividades.getCabeza();
@@ -133,36 +159,52 @@ public class DashboardPanel extends JPanel {
                 while (actualActividad != null) {
                     totalActividades++;
                     Actividad actividad = actualActividad.getValorNodo();
+                    detalleActividades.append(a + ". ").append(actividad.getNombre())
+                            .append(" (").append(proceso.getNombre()).append(")\n");
+                    System.out.println("  Actividad " + a + ": " + actividad.getNombre());  // Debug
+                    a++;
 
-                    // Contar tareas de esta actividad
                     Cola<Tarea> colaTareas = actividad.getTareas();
                     if (colaTareas != null && !colaTareas.estaVacia()) {
                         Nodo<Tarea> actualTarea = colaTareas.getNodoPrimero();
 
                         while (actualTarea != null) {
                             totalTareas++;
-                            if (actualTarea.getValorNodo().isObligatoria()) {
+                            Tarea tarea = actualTarea.getValorNodo();
+                            detalleTareas.append(t + ". ").append(tarea.getNombre())
+                                    .append(" (").append(actividad.getNombre()).append(")\n");
+                            System.out.println("    Tarea " + t + ": " + tarea.getNombre());
+
+                            if (tarea.isObligatoria()) {
                                 tareasObligatorias++;
+                                detalleTareasObligatorias.append(t + ". ").append(tarea.getNombre())
+                                        .append(" (").append(actividad.getNombre()).append(")\n");
+                                System.out.println("      Tarea Obligatoria " + t + ": " + tarea.getNombre());
                             }
+                            t++;
                             actualTarea = actualTarea.getSiguienteNodo();
                         }
                     }
-
                     actualActividad = actualActividad.getSiguienteNodo();
                 }
             }
         }
 
-        // Actualizar las etiquetas en el EDT
-        final int finalTotalActividades = totalActividades;
-        final int finalTotalTareas = totalTareas;
-        final int finalTareasObligatorias = tareasObligatorias;
+        int finalTotalActividades = totalActividades;
+        int finalTotalTareas = totalTareas;
+        int finalTareasObligatorias = tareasObligatorias;
 
         SwingUtilities.invokeLater(() -> {
-            totalProcesosValor.setText(String.valueOf(totalProcesos));
-            totalActividadesValor.setText(String.valueOf(finalTotalActividades));
-            totalTareasValor.setText(String.valueOf(finalTotalTareas));
-            tareasObligatoriasValor.setText(String.valueOf(finalTareasObligatorias));
+            totalProcesosPanel.setValor(String.valueOf(totalProcesos));
+            totalActividadesPanel.setValor(String.valueOf(finalTotalActividades));
+            totalTareasPanel.setValor(String.valueOf(finalTotalTareas));
+            tareasObligatoriasPanel.setValor(String.valueOf(finalTareasObligatorias));
+
+            detalleProcesosPanel.setDetalle(detalleProcesos.toString());
+            detalleActividadesPanel.setDetalle(detalleActividades.toString());
+            detalleTareasPanel.setDetalle(detalleTareas.toString());
+            detalleTareasObligatoriasPanel.setDetalle(detalleTareasObligatorias.toString());
+
         });
     }
 }
