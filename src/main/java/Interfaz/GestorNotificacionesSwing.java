@@ -1,6 +1,6 @@
 package Interfaz;
 
-import ModelosBase.Notificaciones.Notificacion;
+import Notificaciones.Notificacion;
 import Funcionalidades.GestionNotificaciones;
 
 import javax.swing.*;

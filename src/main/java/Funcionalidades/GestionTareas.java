@@ -3,11 +3,11 @@ package Funcionalidades;
 import EstructurasDatos.Cola;
 import EstructurasDatos.Nodo;
 import ModelosBase.Actividad;
-import ModelosBase.Notificaciones.MonitorNotificaciones;
+import Notificaciones.MonitorNotificaciones;
 import ModelosBase.Proceso;
 import ModelosBase.Tarea;
-import ModelosBase.Notificaciones.PrioridadNotificacion;
-import ModelosBase.Notificaciones.TipoNotificacion;
+import Notificaciones.PrioridadNotificacion;
+import Notificaciones.TipoNotificacion;
 import Interfaz.GestorNotificacionesSwing;
 import java.util.UUID;
 

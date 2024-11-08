@@ -1,4 +1,4 @@
-package ModelosBase.Notificaciones;
+package Notificaciones;
 
 import EstructurasDatos.Cola;
 import Funcionalidades.GestionNotificaciones;

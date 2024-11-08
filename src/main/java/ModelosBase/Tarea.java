@@ -10,6 +10,7 @@ public class Tarea implements Cloneable {
     private int duracion; // En minutos
     private LocalDateTime fechaCreacion;
     private List<Tarea> subtareas; // Lista de subtareas
+    private boolean finalizada; // Nuevo campo
 
     // Constructor original
     public Tarea(String descripcion, int duracion, boolean obligatoria) {
@@ -18,6 +19,8 @@ public class Tarea implements Cloneable {
         this.obligatoria = obligatoria;
         this.fechaCreacion = LocalDateTime.now();
         this.subtareas = new ArrayList<>();
+        this.finalizada = false; // Inicialmente no está finalizada
+
     }
 
     // Constructor de copia
@@ -33,7 +36,7 @@ public class Tarea implements Cloneable {
                 otraTarea.fechaCreacion.getMinute()
         );
         this.subtareas = new ArrayList<>();
-        // Copiar subtareas si existen
+        this.finalizada = otraTarea.finalizada;
         for (Tarea subtarea : otraTarea.getSubtareas()) {
             this.subtareas.add(new Tarea(subtarea));
         }
@@ -43,7 +46,13 @@ public class Tarea implements Cloneable {
     public List<Tarea> getSubtareas() {
         return new ArrayList<>(subtareas); // Retorna una copia de la lista
     }
+    public boolean isFinalizada() {
+        return finalizada;
+    }
 
+    public void setFinalizada(boolean finalizada) {
+        this.finalizada = finalizada;
+    }
     public void setSubtareas(List<Tarea> subtareas) {
         this.subtareas = new ArrayList<>(subtareas); // Crea una copia de la lista
     }
@@ -64,7 +73,6 @@ public class Tarea implements Cloneable {
     public Tarea clone() {
         try {
             Tarea clonada = (Tarea) super.clone();
-            // Realizar una copia profunda de los objetos mutables
             clonada.fechaCreacion = LocalDateTime.of(
                     this.fechaCreacion.getYear(),
                     this.fechaCreacion.getMonth(),
@@ -73,6 +81,7 @@ public class Tarea implements Cloneable {
                     this.fechaCreacion.getMinute()
             );
             clonada.subtareas = new ArrayList<>();
+            clonada.finalizada = this.finalizada;
             for (Tarea subtarea : this.subtareas) {
                 clonada.subtareas.add(subtarea.clone());
             }
@@ -95,29 +104,20 @@ public class Tarea implements Cloneable {
         return descripcion;
     }
 
-    public void setDescripcion(String descripcion) {
-        this.descripcion = descripcion;
-    }
 
     public int getDuracion() {
         return duracion;
     }
 
-    public void setDuracion(int duracion) {
-        this.duracion = duracion;
-    }
+
 
     public boolean isObligatoria() {
         return obligatoria;
     }
 
-    public void setObligatoria(boolean obligatoria) {
-        this.obligatoria = obligatoria;
-    }
 
 
     // Método toString para debugging
-    @Override
     public String toString() {
         return "Tarea{" +
                 "descripcion='" + descripcion + '\'' +
@@ -125,6 +125,7 @@ public class Tarea implements Cloneable {
                 ", duracion=" + duracion +
                 ", fechaCreacion=" + fechaCreacion +
                 ", subtareas=" + subtareas.size() +
+                ", finalizada=" + finalizada +
                 '}';
     }
 

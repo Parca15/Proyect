@@ -67,7 +67,8 @@ public class MainApplication extends JFrame {
         dashboardPanel.setBackground(colorFondoPrincipal);
         ActividadPanel actividadPanel = new ActividadPanel(gestionActividades, procesoPanel);
         TareaPanel tareaPanel = new TareaPanel(gestionTareas, gestionConsultas, procesoPanel);
-
+        GrafoPanel grafoPanel = new GrafoPanel(gestionProcesos);
+        grafoPanel.setBackground(colorFondoPrincipal);
         // Crear el nuevo ProcesoTreePanel
         procesoTreePanel = new ProcesoTreePanel(gestionProcesos);
         procesoTreePanel.setBackground(colorFondoPrincipal);
@@ -81,6 +82,7 @@ public class MainApplication extends JFrame {
         centerTabbedPane.addTab("Tareas", tareaPanel);
         centerTabbedPane.addTab("Árbol de Procesos", new ImageIcon(), procesoTreePanel, "Vista jerárquica de procesos");
         centerTabbedPane.addTab("Dashboard", new ImageIcon(), dashboardPanel, "Vista general del sistema");
+        centerTabbedPane.addTab("Grafo", new ImageIcon(), grafoPanel, "Visualización en grafo de los procesos");
 
         // Agregar bordes
         mainPanel.setBorder(BorderFactory.createLineBorder(colorAccent, 2));

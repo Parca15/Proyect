@@ -1,6 +1,9 @@
 package Interfaz;
 
+import Funcionalidades.GestionNotificaciones;
 import ModelosBase.Actividad;
+import Notificaciones.PrioridadNotificacion;
+import Notificaciones.TipoNotificacion;
 import ModelosBase.Proceso;
 import ModelosBase.Tarea;
 import Funcionalidades.GestionProcesos;
@@ -51,7 +54,7 @@ public class ProcesoTreePanel extends JPanel {
 
         // Inicializar componentes
         configurarBusqueda();
-        configurarTimer();
+
         actualizarArbol();
     }
 
@@ -78,14 +81,51 @@ public class ProcesoTreePanel extends JPanel {
         popupMenu = new JPopupMenu();
         JMenuItem expandItem = new JMenuItem("Expandir todo");
         JMenuItem collapseItem = new JMenuItem("Colapsar todo");
+        JMenuItem markCompletedItem = new JMenuItem("Marcar como finalizada");
+        JMenuItem markUncompletedItem = new JMenuItem("Marcar como no finalizada");
 
         expandItem.addActionListener(e -> expandirTodo(tree, true));
         collapseItem.addActionListener(e -> expandirTodo(tree, false));
+        markCompletedItem.addActionListener(e -> marcarTareaSeleccionada(true));
+        markUncompletedItem.addActionListener(e -> marcarTareaSeleccionada(false));
 
         popupMenu.add(expandItem);
         popupMenu.add(collapseItem);
+        popupMenu.addSeparator();
+        popupMenu.add(markCompletedItem);
+        popupMenu.add(markUncompletedItem);
     }
+    private void marcarTareaSeleccionada(boolean completada) {
+        TreePath selectionPath = tree.getSelectionPath();
+        if (selectionPath != null) {
+            DefaultMutableTreeNode node = (DefaultMutableTreeNode) selectionPath.getLastPathComponent();
+            Object userObject = node.getUserObject();
 
+            if (userObject instanceof TareaNode) {
+                TareaNode tareaNode = (TareaNode) userObject;
+                Tarea tarea = tareaNode.getTarea();
+                tarea.setFinalizada(completada);
+
+                // Notificar el cambio
+                if (completada) {
+                    notificarTareaFinalizada(tarea);
+                }
+
+                // Actualizar la visualización
+                actualizarArbol();
+            }
+        }
+    }
+    private void notificarTareaFinalizada(Tarea tarea) {
+        // Asumiendo que tienes acceso a GestionNotificaciones
+        GestionNotificaciones.getInstance().crearNotificacion(
+                "Tarea Finalizada",
+                "La tarea '" + tarea.getDescripcion() + "' ha sido marcada como finalizada",
+                TipoNotificacion.TAREA_VENCIDA,
+                PrioridadNotificacion.BAJA,
+                ""  // ID del proceso - podrías obtenerlo si lo necesitas
+        );
+    }
     private void configurarBusqueda() {
         searchField.getDocument().addDocumentListener(new DocumentListener() {
             @Override
@@ -105,13 +145,6 @@ public class ProcesoTreePanel extends JPanel {
         });
     }
 
-    private void configurarTimer() {
-        if (updateTimer != null) {
-            updateTimer.stop();
-        }
-        updateTimer = new Timer(5000, e -> actualizarArbol());
-        updateTimer.start();
-    }
 
     private void buscar() {
         String searchText = searchField.getText().toLowerCase().trim();
@@ -225,19 +258,36 @@ public class ProcesoTreePanel extends JPanel {
         @Override
         public void mousePressed(MouseEvent e) {
             if (e.isPopupTrigger()) {
-                showPopupMenu(e);
+                handlePopup(e);
             }
         }
 
         @Override
         public void mouseReleased(MouseEvent e) {
             if (e.isPopupTrigger()) {
-                showPopupMenu(e);
+                handlePopup(e);
             }
         }
+        private void handlePopup(MouseEvent e) {
+            TreePath path = tree.getPathForLocation(e.getX(), e.getY());
+            if (path != null) {
+                tree.setSelectionPath(path);
+                DefaultMutableTreeNode node = (DefaultMutableTreeNode) path.getLastPathComponent();
+                Object userObject = node.getUserObject();
 
-        private void showPopupMenu(MouseEvent e) {
-            popupMenu.show(e.getComponent(), e.getX(), e.getY());
+                // Habilitar/deshabilitar opciones del menú según el tipo de nodo
+                Component[] components = popupMenu.getComponents();
+                for (Component component : components) {
+                    if (component instanceof JMenuItem) {
+                        JMenuItem menuItem = (JMenuItem) component;
+                        if (menuItem.getText().contains("Marcar")) {
+                            menuItem.setEnabled(userObject instanceof TareaNode);
+                        }
+                    }
+                }
+
+                popupMenu.show(e.getComponent(), e.getX(), e.getY());
+            }
         }
     }
 
@@ -276,16 +326,22 @@ public class ProcesoTreePanel extends JPanel {
             this.tarea = tarea;
         }
 
+        public Tarea getTarea() {
+            return tarea;
+        }
+
         @Override
         public String toString() {
             return "Tarea: " + tarea.getDescripcion() +
                     " (" + tarea.getDuracion() + " min)" +
-                    (tarea.isObligatoria() ? " (Obligatoria)" : " (Opcional)");
+                    (tarea.isObligatoria() ? " (Obligatoria)" : " (Opcional)") +
+                    (tarea.isFinalizada() ? " ✓" : "");
         }
     }
 
     private class CustomTreeCellRenderer extends DefaultTreeCellRenderer {
         private String searchText = "";
+        private final Color COMPLETED_COLOR = new Color(144, 238, 144); // Light green
 
         public void setSearchText(String text) {
             this.searchText = text.toLowerCase().trim();
@@ -299,14 +355,23 @@ public class ProcesoTreePanel extends JPanel {
             Object userObject = node.getUserObject();
             String text = userObject.toString();
 
-            // Crear un JLabel personalizado para el resaltado
             JLabel label = new JLabel();
             label.setOpaque(true);
 
-            // Configurar colores basados en la selección
+            // Verificar si es una tarea finalizada
+            boolean isTareaFinalizada = false;
+            if (userObject instanceof TareaNode) {
+                Tarea tarea = ((TareaNode) userObject).getTarea();
+                isTareaFinalizada = tarea.isFinalizada();
+            }
+
+            // Configurar colores basados en la selección y estado de finalización
             if (selected) {
                 label.setBackground(getBackgroundSelectionColor());
                 label.setForeground(getTextSelectionColor());
+            } else if (isTareaFinalizada) {
+                label.setBackground(COMPLETED_COLOR);
+                label.setForeground(getTextNonSelectionColor());
             } else {
                 label.setBackground(getBackgroundNonSelectionColor());
                 label.setForeground(getTextNonSelectionColor());

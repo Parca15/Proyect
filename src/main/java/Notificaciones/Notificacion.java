@@ -1,4 +1,4 @@
-package ModelosBase.Notificaciones;
+package Notificaciones;
 
 import java.time.LocalDateTime;
 

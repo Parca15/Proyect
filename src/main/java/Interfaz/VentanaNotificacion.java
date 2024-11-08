@@ -1,7 +1,7 @@
 package Interfaz;
 
-import ModelosBase.Notificaciones.Notificacion;
-import ModelosBase.Notificaciones.PrioridadNotificacion;
+import Notificaciones.Notificacion;
+import Notificaciones.PrioridadNotificacion;
 
 import javax.swing.*;
 import java.awt.*;

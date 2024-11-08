@@ -74,7 +74,7 @@ public class RecuperarPassword {
             message.setRecipients(Message.RecipientType.TO, InternetAddress.parse(destinatario));
             message.setSubject("Recuperación de contraseña");
             message.setText("Su contraseña es: " + passwordUsuario +
-                    "\n\nPor seguridad, le recomendamos cambiar su contraseña después de iniciar sesión.");
+                    "\n\nPor seguridad, le recomendamos cambiar su contraseña antes de iniciar sesión.");
 
             Transport.send(message);
             System.out.println("Correo enviado exitosamente"); // Añade este log
