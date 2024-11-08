@@ -47,8 +47,8 @@
             actividadBusquedaCombo = createStyledComboBox(new String[]{});
             resultadosBusqueda = createStyledTextArea();
             crearButton = createStyledButton("Crear Tarea");
-            buscarButton = createStyledButton("Buscar");
-            calcularButton = createStyledButton("Calcular");
+            buscarButton = createStyledButton("Buscar tarea");
+            calcularButton = createStyledButton("Calcular tiempo de tarea");
             resultadosCalculo = createStyledTextArea();
             resultadosCalculo.setEditable(false);
 
