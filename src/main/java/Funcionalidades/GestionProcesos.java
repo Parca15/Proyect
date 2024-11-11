@@ -1,20 +1,19 @@
 package Funcionalidades;
 
+import EstructurasDatos.Mapa;
 import Interfaz.GestorNotificacionesSwing;
 import ModelosBase.Actividad;
 import Notificaciones.MonitorNotificaciones;
 import ModelosBase.Proceso;
-
-import java.util.Map;
 import java.util.UUID;
 
 public class GestionProcesos {
-    private Map<UUID, Proceso> procesos;
+    private Mapa<UUID, Proceso> procesos;
     private final MonitorNotificaciones monitorNotificaciones;
     private final GestionNotificaciones gestionNotificaciones;
     private final GestorNotificacionesSwing gestorNotificacionesUI;
 
-    public GestionProcesos(Map<UUID, Proceso> procesos) {
+    public GestionProcesos(Mapa<UUID, Proceso> procesos) {
         this.procesos = procesos;
         this.monitorNotificaciones = MonitorNotificaciones.getInstance();
         this.gestionNotificaciones = GestionNotificaciones.getInstance();
@@ -39,11 +38,11 @@ public class GestionProcesos {
         return procesos.get(id);
     }
 
-    public Map<UUID, Proceso> getProcesos() {
+    public Mapa<UUID, Proceso> getProcesos() {
         return procesos;
     }
 
-    public void setProcesos(Map<UUID, Proceso> procesos) {
+    public void setProcesos(Mapa<UUID, Proceso> procesos) {
         this.procesos = procesos;
     }
 

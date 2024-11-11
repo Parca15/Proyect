@@ -1,5 +1,6 @@
 package Interfaz;
 
+import EstructurasDatos.Mapa;
 import ModelosBase.Actividad;
 import ModelosBase.Proceso;
 import ModelosBase.Tarea;
@@ -7,10 +8,6 @@ import Funcionalidades.GestionProcesos;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.io.File;
-import java.util.Map;
 import java.util.UUID;
 import javafx.application.Platform;
 import javafx.embed.swing.JFXPanel;
@@ -84,7 +81,7 @@ public class GrafoPanel extends JPanel {
 
     private void generarGrafo() {
         StringBuilder mermaidCode = new StringBuilder("graph TB\n");
-        Map<UUID, Proceso> procesos = gestionProcesos.getProcesos();
+        Mapa<UUID, Proceso> procesos = gestionProcesos.getProcesos();
         String tipoVista = (String) tipoVistaCombo.getSelectedItem();
 
         int contadorActividades = 0;
@@ -94,7 +91,7 @@ public class GrafoPanel extends JPanel {
         mermaidCode.append("empresa((\"Empresa\"))\n");
 
         // Primero crear todos los nodos
-        for (Proceso proceso : procesos.values()) {
+        for (Proceso proceso : procesos) {
             String procesoId = "proc_" + proceso.getId().toString().substring(0, 8);
             mermaidCode.append(procesoId)
                     .append("((\"")

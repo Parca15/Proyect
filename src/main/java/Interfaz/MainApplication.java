@@ -1,12 +1,12 @@
 package Interfaz;
 
+import EstructurasDatos.Mapa;
 import Funcionalidades.*;
 import ModelosBase.Proceso;
 
 import javax.swing.*;
 import java.awt.*;
 import java.io.File;
-import java.util.HashMap;
 import java.util.UUID;
 
 public class MainApplication extends JFrame {
@@ -28,7 +28,7 @@ public class MainApplication extends JFrame {
         Color colorTexto = Color.BLACK;                           // Texto negro
 
         // Inicializar los gestores
-        gestionProcesos = new GestionProcesos(new HashMap<UUID, Proceso>());
+        gestionProcesos = new GestionProcesos(new Mapa<UUID, Proceso>());
         excelHandler = new ExcelDataHandler(gestionProcesos);
         GestionActividades gestionActividades = new GestionActividades(gestionProcesos);
         GestionTareas gestionTareas = new GestionTareas(gestionProcesos);
@@ -169,7 +169,7 @@ public class MainApplication extends JFrame {
         model.clear(); // Limpiar la lista actual
 
         // Obtener los procesos actualizados y añadirlos al modelo
-        for (Proceso proceso : gestionProcesos.getProcesos().values()) {
+        for (Proceso proceso : gestionProcesos.getProcesos()) {
             model.addElement(proceso.getNombre() + " (" + proceso.getId() + ")");
         }
     }

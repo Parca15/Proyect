@@ -4,7 +4,6 @@ ModelosBase\RecuperarPassword.class
 Interfaz\DashboardPanel.class
 Interfaz\InterLogin$10.class
 Interfaz\GestorNotificacionesSwing.class
-ModelosBase\Notificaciones\Notificacion.class
 Interfaz\TareaPanel$3.class
 Interfaz\InterLogin$8.class
 Interfaz\ProcesoTreePanel$1.class
@@ -42,7 +41,6 @@ Interfaz\InterLogin$2.class
 Interfaz\FlipPanel$2.class
 Interfaz\InterRegister$2.class
 Interfaz\InterLogin$12.class
-ModelosBase\Notificaciones\PrioridadNotificacion.class
 EstructurasDatos\Nodo.class
 Interfaz\MainApplication.class
 Interfaz\TareaPanel$10.class
@@ -71,7 +69,6 @@ EstructurasDatos\Cola.class
 Interfaz\TareaPanel$11.class
 Interfaz\ActividadPanel$3.class
 Interfaz\ProcesoTreePanel$TareaNode.class
-ModelosBase\Notificaciones\TipoNotificacion.class
 Interfaz\DetalleEstadisticaPanel.class
 Interfaz\EstadisticaPanel.class
 Interfaz\PanelNotificacion$2.class
@@ -101,7 +98,6 @@ ModelosBase\EmailSender.class
 Interfaz\TareaPanel$2.class
 Funcionalidades\GestionConsultas$TiempoActividad.class
 Funcionalidades\GestionConsultas$TipoBusqueda.class
-ModelosBase\Notificaciones\MonitorNotificaciones.class
 Interfaz\ActividadPanel$RoundedBorder.class
 Interfaz\InterRegister$RoundedBorder.class
 Interfaz\ProcesoTreePanel$TreeMouseListener.class
