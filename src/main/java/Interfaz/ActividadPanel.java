@@ -4,6 +4,7 @@ import Funcionalidades.GestionActividades;
 
 import javax.swing.*;
 import javax.swing.border.*;
+import javax.swing.plaf.basic.BasicComboBoxUI;
 import java.awt.*;
 import java.awt.event.*;
 import java.util.List;
@@ -254,29 +255,90 @@ public class ActividadPanel extends JPanel {
     }
 
     private JComboBox<String> createStyledComboBox(String[] items) {
-        JComboBox<String> comboBox = new JComboBox<>(items);
-        comboBox.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-        comboBox.setForeground(Color.black);
-        comboBox.setBackground(new Color(255, 255, 255, 40));
-        comboBox.setBorder(new RoundedBorder(20));
+        JComboBox<String> comboBox = new JComboBox<>(items) {
+            @Override
+            protected void paintComponent(Graphics g) {
+                Graphics2D g2d = (Graphics2D) g.create();
+                g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
-        // Personalizar el renderizador para el color del texto
+                // Fondo del ComboBox con mayor opacidad
+                g2d.setColor(new Color(255, 255, 255, 180));
+                g2d.fillRoundRect(0, 0, getWidth()-1, getHeight()-1, 20, 20);
+
+                g2d.dispose();
+                super.paintComponent(g);
+            }
+        };
+
+        comboBox.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        comboBox.setForeground(new Color(50, 50, 50)); // Texto más oscuro para mejor contraste
+
+        // Personalizar el popup del ComboBox
+        Object comp = comboBox.getUI().getAccessibleChild(comboBox, 0);
+        if (comp instanceof JPopupMenu) {
+            JPopupMenu popup = (JPopupMenu) comp;
+            popup.setBorder(new RoundedBorder(20));
+        }
+
+        // Renderizador personalizado para los items
         DefaultListCellRenderer renderer = new DefaultListCellRenderer() {
             @Override
             public Component getListCellRendererComponent(JList<?> list, Object value,
                                                           int index, boolean isSelected, boolean cellHasFocus) {
                 super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
-                setForeground(Color.black);
-                setBackground(isSelected ? new Color(255, 255, 255, 80) : new Color(255, 255, 255, 40));
+
+                if (isSelected) {
+                    setBackground(new Color(147, 112, 219, 180));
+                    setForeground(Color.WHITE);
+                } else {
+                    setBackground(new Color(255, 255, 255, 220));
+                    setForeground(new Color(50, 50, 50));
+                }
+
+                // Padding para los items
+                setBorder(BorderFactory.createEmptyBorder(5, 10, 5, 10));
                 setOpaque(true);
                 return this;
             }
         };
+
         comboBox.setRenderer(renderer);
+
+        // Estilo del botón desplegable
+        comboBox.setUI(new BasicComboBoxUI() {
+            @Override
+            protected JButton createArrowButton() {
+                return new JButton() {
+                    @Override
+                    public void paint(Graphics g) {
+                        Graphics2D g2d = (Graphics2D) g.create();
+                        g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+
+                        // Fondo del botón
+                        g2d.setColor(new Color(147, 112, 219, 180));
+                        g2d.fillRoundRect(0, 0, getWidth(), getHeight(), 10, 10);
+
+                        // Dibujar la flecha
+                        int size = 8;
+                        int x = (getWidth() - size) / 2;
+                        int y = (getHeight() - size) / 2;
+
+                        g2d.setColor(Color.WHITE);
+                        int[] xPoints = {x, x + size, x + size/2};
+                        int[] yPoints = {y, y, y + size};
+                        g2d.fillPolygon(xPoints, yPoints, 3);
+
+                        g2d.dispose();
+                    }
+                };
+            }
+        });
+
+        // Dimensiones mínimas
+        comboBox.setPreferredSize(new Dimension(comboBox.getPreferredSize().width, 40));
 
         return comboBox;
     }
-
     private JButton createStyledButton(String text, int fontSize) {
         JButton button = new JButton(text) {
             @Override

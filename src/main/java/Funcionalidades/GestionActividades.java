@@ -198,7 +198,7 @@ public class GestionActividades {
             actividad2.setFechaInicio(tempFechaInicio);
 
             // Intercambiar tareas si se solicita
-            if (intercambiarTareas) {
+            if (!intercambiarTareas) {
                 // Crear copias temporales de las colas de tareas
                 Cola<Tarea> tareasAct1 = new Cola<>();
                 Cola<Tarea> tareasAct2 = new Cola<>();
