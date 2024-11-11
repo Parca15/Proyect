@@ -86,6 +86,7 @@ public class ListaEnlazada<T> {
             tamanio--;
         }
     }
+
     public T getElementoEnPosicion(int posicion) {
         if (posicion < 0 || posicion >= tamanio) {
             throw new IndexOutOfBoundsException("Posición inválida: " + posicion);
@@ -95,5 +96,43 @@ public class ListaEnlazada<T> {
             actual = actual.getSiguienteNodo();
         }
         return actual.getValorNodo();
+    }
+
+    public int indiceDe(T dato) {
+        Nodo<T> actual = cabeza;
+        int indice = 0;
+        while (actual != null && !actual.getValorNodo().equals(dato)) {
+            actual = actual.getSiguienteNodo();
+            indice++;
+        }
+        return actual != null ? indice : -1;
+    }
+
+    public T get(int indice) {
+        if (indice < 0 || indice >= tamanio) {
+            throw new IndexOutOfBoundsException("Índice inválido: " + indice);
+        }
+        Nodo<T> actual = cabeza;
+        for (int i = 0; i < indice; i++) {
+            actual = actual.getSiguienteNodo();
+        }
+        return actual.getValorNodo();
+    }
+
+    public void eliminarEn(int indice) {
+        if (indice < 0 || indice >= tamanio) {
+            throw new IndexOutOfBoundsException("Índice inválido: " + indice);
+        }
+        if (indice == 0) {
+            cabeza = cabeza.getSiguienteNodo();
+            tamanio--;
+            return;
+        }
+        Nodo<T> actual = cabeza;
+        for (int i = 0; i < indice - 1; i++) {
+            actual = actual.getSiguienteNodo();
+        }
+        actual.setSiguienteNodo(actual.getSiguienteNodo().getSiguienteNodo());
+        tamanio--;
     }
 }

@@ -1,5 +1,6 @@
 package Interfaz;
 
+import EstructurasDatos.Mapa;
 import Funcionalidades.GestionProcesos;
 import ModelosBase.Actividad;
 import ModelosBase.Proceso;
@@ -10,7 +11,6 @@ import EstructurasDatos.Cola;
 
 import javax.swing.*;
 import java.awt.*;
-import java.util.Map;
 import java.util.UUID;
 
 public class DashboardPanel extends JPanel {
@@ -130,7 +130,7 @@ public class DashboardPanel extends JPanel {
     }
 
     public void actualizarEstadisticas() {
-        Map<UUID, Proceso> procesos = gestionProcesos.getProcesos();
+        Mapa<UUID, Proceso> procesos = gestionProcesos.getProcesos();
 
         int totalProcesos = procesos.size();
         int totalActividades = 0;
@@ -147,7 +147,7 @@ public class DashboardPanel extends JPanel {
         int a = 1;
         int t = 1;
 
-        for (Proceso proceso : procesos.values()) {
+        for (Proceso proceso : procesos) {
             detalleProcesos.append(p + ". ").append(proceso.getNombre()).append("\n");
             System.out.println("Proceso " + p + ": " + proceso.getNombre());  // Debug
             p++;

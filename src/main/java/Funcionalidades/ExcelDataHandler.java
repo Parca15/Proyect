@@ -2,6 +2,7 @@ package Funcionalidades;
 
 import EstructurasDatos.Cola;
 import EstructurasDatos.ListaEnlazada;
+import EstructurasDatos.Mapa;
 import EstructurasDatos.Nodo;
 import ModelosBase.Actividad;
 import ModelosBase.Proceso;
@@ -161,7 +162,7 @@ public class ExcelDataHandler {
              Workbook workbook = new XSSFWorkbook(fis)) {
 
             // Importar Procesos primero
-            Map<String, Proceso> procesosImportados = importarProcesos(workbook.getSheet("Proceso"));
+            Mapa<String, Proceso> procesosImportados = importarProcesos(workbook.getSheet("Proceso"));
 
             // Importar Actividades y asociarlas a los procesos
             importarActividadesYAsociar(workbook.getSheet("Actividades"), procesosImportados);
@@ -170,14 +171,14 @@ public class ExcelDataHandler {
             importarTareasYAsociar(workbook.getSheet("Tareas"), procesosImportados);
 
             // Actualizar los procesos en la gestión
-            for (Proceso proceso : procesosImportados.values()) {
+            for (Proceso proceso : procesosImportados) {
                 gestionProcesos.getProcesos().put(proceso.getId(), proceso);
             }
         }
     }
 
-    private Map<String, Proceso> importarProcesos(Sheet sheet) {
-        Map<String, Proceso> procesosImportados = new HashMap<>();
+    private Mapa<String, Proceso> importarProcesos(Sheet sheet) {
+        Mapa<String, Proceso> procesosImportados = new Mapa<>();
         Iterator<Row> rowIterator = sheet.iterator();
         rowIterator.next(); // Saltar fila de encabezados
 
@@ -199,13 +200,13 @@ public class ExcelDataHandler {
         return procesosImportados;
     }
 
-    private void importarActividadesYAsociar(Sheet sheet, Map<String, Proceso> procesosImportados) {
+    private void importarActividadesYAsociar(Sheet sheet, Mapa<String, Proceso> procesosImportados) {
         if (sheet == null) return;
 
         Iterator<Row> rowIterator = sheet.iterator();
         rowIterator.next(); // Saltar fila de encabezados
 
-        Map<String, Actividad> actividadesImportadas = new HashMap<>();
+        Mapa<String, Actividad> actividadesImportadas = new Mapa<>();
 
         while (rowIterator.hasNext()) {
             Row row = rowIterator.next();
@@ -231,7 +232,7 @@ public class ExcelDataHandler {
         }
     }
 
-    private void importarTareasYAsociar(Sheet sheet, Map<String, Proceso> procesosImportados) {
+    private void importarTareasYAsociar(Sheet sheet, Mapa<String, Proceso> procesosImportados) {
         if (sheet == null) return;
 
         Iterator<Row> rowIterator = sheet.iterator();
@@ -253,7 +254,7 @@ public class ExcelDataHandler {
             ));
 
             // Buscar la actividad correspondiente y asociar la tarea
-            for (Proceso proceso : procesosImportados.values()) {
+            for (Proceso proceso : procesosImportados) {
                 ListaEnlazada<Actividad> actividades = proceso.getActividades();
                 for (int i = 0; i < actividades.getTamanio(); i++) {
                     Actividad actividad = actividades.getElementoEnPosicion(i);

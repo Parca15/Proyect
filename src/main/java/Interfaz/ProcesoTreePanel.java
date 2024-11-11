@@ -1,5 +1,6 @@
 package Interfaz;
 
+import EstructurasDatos.Mapa;
 import Funcionalidades.GestionNotificaciones;
 import ModelosBase.Actividad;
 import Notificaciones.PrioridadNotificacion;
@@ -16,7 +17,6 @@ import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.Enumeration;
-import java.util.Map;
 import java.util.UUID;
 
 public class ProcesoTreePanel extends JPanel {
@@ -196,9 +196,9 @@ public class ProcesoTreePanel extends JPanel {
 
     public void actualizarArbol() {
         rootNode.removeAllChildren();
-        Map<UUID, Proceso> procesos = gestionProcesos.getProcesos();
+        Mapa<UUID, Proceso> procesos = gestionProcesos.getProcesos();
 
-        for (Proceso proceso : procesos.values()) {
+        for (Proceso proceso : procesos) {
             DefaultMutableTreeNode procesoNode = new DefaultMutableTreeNode(new ProcesoNode(proceso));
             agregarActividadesAlNodo(procesoNode, proceso);
             rootNode.add(procesoNode);

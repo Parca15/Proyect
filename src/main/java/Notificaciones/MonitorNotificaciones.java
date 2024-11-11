@@ -34,7 +34,7 @@ public class MonitorNotificaciones {
     }
 
     private void iniciarMonitoreo() {
-        scheduler.scheduleAtFixedRate(this::verificarEstados, 0, 15, TimeUnit.MINUTES);
+        scheduler.scheduleAtFixedRate(this::verificarEstados, 0, 5, TimeUnit.MINUTES);
     }
 
     public void registrarProceso(Proceso proceso) {
