@@ -9,8 +9,6 @@ import Notificaciones.TipoNotificacion;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
-import java.time.LocalDateTime;
-import java.time.temporal.ChronoUnit;
 import java.util.function.Consumer;
 
 public class GestionNotificaciones {
@@ -34,41 +32,6 @@ public class GestionNotificaciones {
 
     public void setNotificationHandler(Consumer<Notificacion> handler) {
         this.manejoNotificacion = handler;
-    }
-
-    public void verificarTareasPendientes(Proceso proceso) {
-        LocalDateTime ahora = LocalDateTime.now();
-
-        for (int i = 0; i < proceso.getActividades().getTamanio(); i++) {
-            Actividad actividad = proceso.getActividades().getElementoEnPosicion(i);
-            Cola<Tarea> tareas = actividad.getTareas();
-
-            Tarea tarea = tareas.obtenerFrente();
-            while (tarea != null) {
-                long minutosTranscurridos = ChronoUnit.MINUTES.between(tarea.getFechaCreacion(), ahora);
-
-                if (tarea.isObligatoria() && minutosTranscurridos > tarea.getDuracion()) {
-                    crearNotificacion(
-                            "Tarea Vencida",
-                            "La tarea '" + tarea.getDescripcion() + "' en la actividad '" + actividad.getNombre() + "' está vencida",
-                            TipoNotificacion.TAREA_VENCIDA,
-                            PrioridadNotificacion.ALTA,
-                            proceso.getId().toString()
-                    );
-                } else if (tarea.isObligatoria() && minutosTranscurridos >= tarea.getDuracion() - 30) {
-                    crearNotificacion(
-                            "Tarea Próxima a Vencer",
-                            "La tarea '" + tarea.getDescripcion()
-                                    + "' en la actividad '" + actividad.getNombre()
-                                    + "' vencerá en 30 minutos",
-                            TipoNotificacion.TAREA_PROXIMA,
-                            PrioridadNotificacion.MEDIA,
-                            proceso.getId().toString()
-                    );
-                }
-                tarea = tareas.desencolar();
-            }
-        }
     }
 
     public void notificarActividadCreada(Actividad actividad, Proceso proceso) {
@@ -135,16 +98,6 @@ public class GestionNotificaciones {
                 e.printStackTrace();
             }
         }).start();
-    }
-
-    public Cola<Notificacion> obtenerNotificaciones() {
-        return notificaciones;
-    }
-
-    public void limpiarNotificaciones() {
-        while (!notificaciones.estaVacia()) {
-            notificaciones.desencolar();
-        }
     }
 
     public void notificarProcesoIniciado(Proceso proceso) {
