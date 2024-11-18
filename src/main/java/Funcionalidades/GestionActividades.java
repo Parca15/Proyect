@@ -107,7 +107,7 @@ public class GestionActividades {
         ultimaActividad = nuevaActividad;
     }
 
-    private boolean actividadExiste(UUID id, String nombre) {
+    public boolean actividadExiste(UUID id, String nombre) {
         Nodo<Actividad> actual = gestionProcesos.buscarProceso(id).getActividades().getCabeza();
         while (actual != null) {
             if (actual.getValorNodo().getNombre().equals(nombre)) {
