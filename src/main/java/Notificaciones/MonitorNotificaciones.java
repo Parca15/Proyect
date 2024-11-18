@@ -34,7 +34,7 @@ public class MonitorNotificaciones {
     }
 
     private void iniciarMonitoreo() {
-        scheduler.scheduleAtFixedRate(this::verificarEstados, 0, 5, TimeUnit.MINUTES);
+        scheduler.scheduleAtFixedRate(this::verificarEstados, 0, 20, TimeUnit.SECONDS);
     }
 
     public void registrarProceso(Proceso proceso) {
@@ -64,12 +64,12 @@ public class MonitorNotificaciones {
             long minutosTranscurridos = ChronoUnit.MINUTES.between(tarea.getFechaCreacion(), ahora);
             long minutosRestantes = tarea.getDuracion() - minutosTranscurridos;
 
-            if (minutosRestantes <= 0 && tarea.isObligatoria()) {
+            if (minutosRestantes <= 0 && tarea.isObligatoria() ) {
                 GestionNotificaciones.getInstance().notificarTareaVencida(tarea, actividad, proceso);
                 tareasCopia.desencolar();
                 hayTareasVencidas = true;
             }
-            else if (minutosRestantes > 0 && minutosRestantes <= 30 && tarea.isObligatoria()) {
+            else if (minutosRestantes > 0 && minutosRestantes <= 30 && tarea.isObligatoria() ) {
                 GestionNotificaciones.getInstance().notificarTareaProximaVencer(tarea, actividad, proceso, minutosRestantes);
             }
         }

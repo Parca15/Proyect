@@ -414,6 +414,15 @@ public class ActividadPanel extends JPanel {
             return;
         }
 
+        // Verificar si la actividad ya existe
+        if (gestionActividades.actividadExiste(procesoId, nombre)) {
+            JOptionPane.showMessageDialog(this,
+                    "Ya existe una actividad con el nombre '" + nombre + "' en este proceso",
+                    "Error",
+                    ERROR_MESSAGE);
+            return;
+        }
+
         try {
             switch (tipoInsercionCombo.getSelectedIndex()) {
                 case 0:
