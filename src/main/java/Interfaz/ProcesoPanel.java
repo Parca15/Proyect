@@ -1,5 +1,6 @@
 package Interfaz;
 
+import App.Login;
 import Funcionalidades.GestionProcesos;
 import ModelosBase.Proceso;
 
@@ -18,6 +19,9 @@ public class ProcesoPanel extends JPanel {
     private final JList<String> procesosList;
     private UUID selectedProcesoId;
     private java.util.List<Runnable> actividadListeners = new java.util.ArrayList<>();
+    private final JButton crearButton;
+    private final JButton eliminarButton;
+    private String usuario = Login.tipoUsuario;
 
     // Colores consistentes con el diseño del login
     private Color primaryColor = new Color(147, 112, 219);
@@ -135,9 +139,9 @@ public class ProcesoPanel extends JPanel {
         buttonPanel.setOpaque(false);
 
         // Botones con estilo
-        JButton crearButton = createStyledButton("Crear Proceso", 12);
+        crearButton = createStyledButton("Crear Proceso", 12);
         crearButton.setPreferredSize(new Dimension(100, 35));
-        JButton eliminarButton = createStyledButton("Eliminar Proceso", 12);
+        eliminarButton = createStyledButton("Eliminar Proceso", 12);
         eliminarButton.setPreferredSize(new Dimension(100, 35));
 
         // Botón salir con estilo especial
@@ -245,7 +249,16 @@ public class ProcesoPanel extends JPanel {
             }
         });
 
+        if (!usuario.equals("admin")) {
+            crearButton.setVisible(false);
+            eliminarButton.setVisible(false);
+        }
+
         add(mainPanel);
+    }
+    public void mostrarBotonesAdministrador(boolean mostrar) {
+        crearButton.setVisible(mostrar);
+        eliminarButton.setVisible(mostrar);
     }
 
     private JTextField createStyledTextField() {

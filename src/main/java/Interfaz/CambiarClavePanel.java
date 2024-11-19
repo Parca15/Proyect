@@ -1,5 +1,7 @@
 package Interfaz;
 
+import App.Login;
+
 import javax.swing.*;
 import javax.swing.text.AbstractDocument;
 import java.awt.*;
@@ -234,72 +236,40 @@ public class CambiarClavePanel extends JPanel {
         });
     }
 
-    public void handleChangePassword() {
+    // En la clase que maneja el cambio de clave
+    private void handleChangePassword() {
         String document = documentField.getText();
         String currentPassword = new String(currentPasswordField.getPassword());
         String newPassword = new String(newPasswordField.getPassword());
 
-        // Validaciones básicas
-        if (document.isEmpty() || currentPassword.isEmpty() || newPassword.isEmpty()) {
-            JOptionPane.showMessageDialog(this,
-                    "Por favor, complete todos los campos",
-                    "Error",
-                    JOptionPane.ERROR_MESSAGE);
-            return;
-        }
-
-        // Validar que la nueva contraseña no sea igual a la actual
+        // Verificar que la nueva contraseña sea diferente de la actual
         if (currentPassword.equals(newPassword)) {
-            JOptionPane.showMessageDialog(this,
-                    "La nueva contraseña debe ser diferente a la actual",
-                    "Error",
-                    JOptionPane.ERROR_MESSAGE);
-            return;
+            JOptionPane.showMessageDialog(null, "La nueva contraseña no puede ser igual a la actual");
+            return; // Detener la ejecución del método
         }
 
-        try {
-            // Intentar actualizar en ambos archivos
-            File adminFile = new File("src/main/resources/Login_Archivo/Admin");
-            File userFile = new File("src/main/resources/Login_Archivo/Usuarios");
+        String userType = Login.verifyUser(document, currentPassword) != null ?
+                (Login.verifyUser(document, currentPassword).equals("admin") ? "admin" : "user") :
+                null;
 
-            boolean updatedInAdmin = false;
-            boolean updatedInUsers = false;
-
-            if (adminFile.exists()) {
-                updatedInAdmin = findAndUpdateUser(adminFile, document, currentPassword, newPassword);
-            }
-
-            if (userFile.exists()) {
-                updatedInUsers = findAndUpdateUser(userFile, document, currentPassword, newPassword);
-            }
-
-            // Verificar si se actualizó en algún archivo
-            if (updatedInAdmin || updatedInUsers) {
-                JOptionPane.showMessageDialog(this,
-                        "Contraseña actualizada exitosamente",
-                        "Éxito",
-                        JOptionPane.INFORMATION_MESSAGE);
-
-                // Limpiar campos y volver a la pantalla de login
-                documentField.setText("");
-                currentPasswordField.setText("");
-                newPasswordField.setText("");
-                irAInterfazPrincipal();
+        if (userType != null) {
+            boolean resultado = Login.updateUserPassword(document, currentPassword, newPassword, userType);
+            if (resultado) {
+                JOptionPane.showMessageDialog(null, "Contraseña cambiada exitosamente");
             } else {
-                JOptionPane.showMessageDialog(this,
-                        "Documento o contraseña actual incorrectos",
-                        "Error",
-                        JOptionPane.ERROR_MESSAGE);
+                JOptionPane.showMessageDialog(null, "Error al cambiar la contraseña");
             }
-
-        } catch (IOException e) {
-            e.printStackTrace();
-            JOptionPane.showMessageDialog(this,
-                    "Error al actualizar la contraseña: " + e.getMessage(),
-                    "Error",
-                    JOptionPane.ERROR_MESSAGE);
+        } else {
+            JOptionPane.showMessageDialog(null, "Credenciales incorrectas");
         }
+
+        // Limpiar los campos después de procesar
+        documentField.setText("");
+        currentPasswordField.setText("");
+        newPasswordField.setText("");
     }
+
+
 
     // Método auxiliar para encontrar y actualizar al usuario
     private boolean findAndUpdateUser(File file, String document, String currentPassword, String newPassword) throws IOException {
